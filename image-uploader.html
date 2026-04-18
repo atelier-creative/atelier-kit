@@ -283,6 +283,9 @@
     </button>
 </div>
 
+<!-- ── Debug info (temporary) ───────────────────────────── -->
+<div id="debugBox" style="margin:10px 16px;padding:10px;background:#fff3cd;border-radius:8px;font-size:11px;word-break:break-all;line-height:1.6;display:none"></div>
+
 <!-- ── Product info box ─────────────────────────────────── -->
 <div class="product-box" id="productBox">
     <div class="product-thumb-placeholder" id="productThumbPlaceholder">📦</div>
@@ -480,7 +483,8 @@ window.addEventListener('load', () => {
                 callback : onTokenReceived
             });
 
-            if (!saved) {
+            showDebug();
+            if (!saved && isWebView()) {
                 initFedCm();
             }
         }
@@ -490,7 +494,29 @@ window.addEventListener('load', () => {
 // ═══════════════════════════════════════════════════════════
 //  GOOGLE AUTH
 // ═══════════════════════════════════════════════════════════
-let fedCmHint = null; // email resolved by FedCM
+let fedCmHint = null;
+
+function showDebug() {
+    const ua = navigator.userAgent;
+    const box = document.getElementById('debugBox');
+    box.style.display = 'block';
+    box.innerHTML =
+        '<b>UA:</b> ' + ua + '<br>' +
+        '<b>wv flag:</b> ' + /wv/.test(ua) + '<br>' +
+        '<b>Android:</b> ' + /Android/.test(ua) + '<br>' +
+        '<b>Version/ (old WebView):</b> ' + /Version\//.test(ua) + '<br>' +
+        '<b>iPhone/iPad:</b> ' + /iPhone|iPad/.test(ua) + '<br>' +
+        '<b>Safari:</b> ' + /Safari/.test(ua) + '<br>' +
+        '<b>isWebView():</b> ' + isWebView();
+}
+
+function isWebView() {
+    const ua = navigator.userAgent;
+    if (/Android/.test(ua) && /wv/.test(ua)) return true;
+    if (/Android/.test(ua) && /Version\//.test(ua)) return true;
+    if (/iPhone|iPad/.test(ua) && !/Safari/.test(ua)) return true;
+    return false;
+}
 
 function initFedCm() {
     google.accounts.id.initialize({
