@@ -480,7 +480,7 @@ window.addEventListener('load', () => {
                 callback : onTokenReceived
             });
 
-            if (!saved && isWebView()) {
+            if (!saved) {
                 initFedCm();
             }
         }
@@ -490,14 +490,6 @@ window.addEventListener('load', () => {
 // ═══════════════════════════════════════════════════════════
 //  GOOGLE AUTH
 // ═══════════════════════════════════════════════════════════
-function isWebView() {
-    const ua = navigator.userAgent;
-    if (/Android/.test(ua) && /wv/.test(ua)) return true;         // Android WebView flag
-    if (/Android/.test(ua) && /Version\//.test(ua)) return true;  // older Android WebView
-    if (/iPhone|iPad/.test(ua) && !/Safari/.test(ua)) return true; // iOS WebView (no Safari)
-    return false;
-}
-
 let fedCmHint = null; // email resolved by FedCM
 
 function initFedCm() {
