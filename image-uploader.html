@@ -507,7 +507,10 @@ function showDebug() {
         '<b>Version/ (old WebView):</b> ' + /Version\//.test(ua) + '<br>' +
         '<b>iPhone/iPad:</b> ' + /iPhone|iPad/.test(ua) + '<br>' +
         '<b>Safari:</b> ' + /Safari/.test(ua) + '<br>' +
-        '<b>isWebView():</b> ' + isWebView();
+        '<b>isWebView():</b> ' + isWebView() + '<br>' +
+        '<b>webkit.messageHandlers:</b> ' + !!(window.webkit && window.webkit.messageHandlers) + '<br>' +
+        '<b>standalone:</b> ' + !!window.navigator.standalone + '<br>' +
+        '<b>referrer:</b> ' + (document.referrer || '(empty)');
 }
 
 function isWebView() {
