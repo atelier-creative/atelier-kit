@@ -284,8 +284,6 @@
 </div>
 
 <!-- ── Debug info (temporary) ───────────────────────────── -->
-<div id="debugBox" style="margin:10px 16px;padding:10px;background:#fff3cd;border-radius:8px;font-size:11px;word-break:break-all;line-height:1.6;display:none"></div>
-
 <!-- ── Product info box ─────────────────────────────────── -->
 <div class="product-box" id="productBox">
     <div class="product-thumb-placeholder" id="productThumbPlaceholder">📦</div>
@@ -360,7 +358,7 @@ function parseUrlParams() {
         const KNOWN_PARAMS = [
             'google_client_id','appsheet_key','app_id','product_id','folder_id',
             'image_folder','table_name','col_product_id','col_image',
-            'product_name','product_thumbnail'
+            'product_name','product_thumbnail','context_host'
         ];
         const getParamFull = (name) => {
             const re = new RegExp(`[?&]${name}=`);
@@ -389,7 +387,8 @@ function parseUrlParams() {
             col_product_id   : getParamFull('col_product_id') || 'ProductId',
             col_image        : getParamFull('col_image') || 'Image',
             product_name     : getParamFull('product_name'),
-            product_thumbnail: getParamFull('product_thumbnail')
+            product_thumbnail: getParamFull('product_thumbnail'),
+            context_host     : getParamFull('context_host')
         };
         // Persist so data survives an OAuth redirect if it ever happens
         try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(parsed)); } catch (_) {}
@@ -483,8 +482,7 @@ window.addEventListener('load', () => {
                 callback : onTokenReceived
             });
 
-            showDebug();
-            if (!saved && isWebView()) {
+            if (!saved && PARAMS.context_host === 'Device') {
                 initFedCm();
             }
         }
@@ -496,29 +494,6 @@ window.addEventListener('load', () => {
 // ═══════════════════════════════════════════════════════════
 let fedCmHint = null;
 
-function showDebug() {
-    const ua = navigator.userAgent;
-    const box = document.getElementById('debugBox');
-    box.style.display = 'block';
-    box.innerHTML =
-        '<b>UA:</b> ' + ua + '<br>' +
-        '<b>wv flag:</b> ' + /wv/.test(ua) + '<br>' +
-        '<b>Android:</b> ' + /Android/.test(ua) + '<br>' +
-        '<b>Version/ (old WebView):</b> ' + /Version\//.test(ua) + '<br>' +
-        '<b>iPhone/iPad:</b> ' + /iPhone|iPad/.test(ua) + '<br>' +
-        '<b>Safari:</b> ' + /Safari/.test(ua) + '<br>' +
-        '<b>isWebView():</b> ' + isWebView() + '<br>' +
-        '<b>webkit.messageHandlers:</b> ' + !!(window.webkit && window.webkit.messageHandlers) + '<br>' +
-        '<b>standalone:</b> ' + !!window.navigator.standalone + '<br>' +
-        '<b>referrer:</b> ' + (document.referrer || '(empty)');
-}
-
-function isWebView() {
-    const ua = navigator.userAgent;
-    if (/Android/.test(ua) && /wv/.test(ua)) return true;          // Android WebView (explicit flag)
-    if (/iPhone|iPad/.test(ua) && !/Safari\//.test(ua)) return true; // iOS WKWebView (no Safari/ token)
-    return false;
-}
 
 function initFedCm() {
     google.accounts.id.initialize({
