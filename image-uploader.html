@@ -327,8 +327,6 @@ function formatSize(bytes) {
     return (bytes / 1024).toFixed(0) + ' KB';
 }
 
-// AppSheet table column names — loaded from URL params at runtime (see parseUrlParams)
-
 // ═══════════════════════════════════════════════════════════
 //  PARSE URL PARAMS
 //  Expected: ?google_client_id=...&appsheet_key=...&app_id=...
@@ -344,7 +342,7 @@ function parseUrlParams() {
         // URL has params — parse and persist to sessionStorage
         const qs = url.substring(qi);
 
-        // Special extractor for params whose value may contain & (e.g. AppSheet image URLs).
+        // Special extractor for params whose value may contain & (e.g. image URLs with query strings).
         // Reads from the param name up to the next known param name or end of string.
         const KNOWN_PARAMS = [
             'google_client_id','appsheet_key','app_id','product_id','folder_id',
@@ -462,7 +460,7 @@ window.addEventListener('load', () => {
                 if (!saved) {
                     document.getElementById('authSection').innerHTML =
                         '<div class="auth-icon">⚠️</div>' +
-                        '<div class="auth-desc">Thiếu tham số <b>google_client_id</b> trong URL.<br>Vui lòng kiểm tra lại nút AppSheet.</div>';
+                        '<div class="auth-desc">Thiếu tham số <b>google_client_id</b> trong URL.<br>Vui lòng kiểm tra lại cấu hình.</div>';
                 }
                 return;
             }
@@ -475,7 +473,7 @@ window.addEventListener('load', () => {
             // Initialize One Tap / FedCM sign-in (native account picker on Android/Chrome)
             google.accounts.id.initialize({
                 client_id       : PARAMS.google_client_id,
-                callback        : () => tokenClient.requestAccessToken({ prompt: '' }),
+                callback        : () => tokenClient.requestAccessToken({ prompt: 'consent' }),
                 use_fedcm_for_prompt: true
             });
 
@@ -675,7 +673,7 @@ function uploadToDrive(file, uploadedName, parentId, signal, onProgress) {
     });
 }
 
-// Make the uploaded file readable by anyone (so AppSheet can show the image)
+// Make the uploaded file readable by anyone (public read access)
 async function makePublic(fileId) {
     try {
         await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
@@ -692,15 +690,15 @@ async function makePublic(fileId) {
 // ═══════════════════════════════════════════════════════════
 //  APPSHEET API
 // ═══════════════════════════════════════════════════════════
-async function addAppSheetRecord(driveFileId, uploadedName) {
+async function addRecord(driveFileId, uploadedName) {
     const { appsheet_key, app_id, product_id, table_name, image_folder } = PARAMS;
 
     if (!appsheet_key || !app_id) {
-        console.warn('[AppSheet] Missing appsheet_key or app_id — skipping record insert.', { appsheet_key, app_id });
+        console.warn('Missing appsheet_key or app_id — skipping record insert.', { appsheet_key, app_id });
         return;
     }
 
-    // AppSheet Image column expects a relative path: "<image_folder>/yyyy/mm/dd/<filename>"
+    // Image column expects a relative path: "<image_folder>/yyyy/mm/dd/<filename>"
     const now  = new Date();
     const yyyy = String(now.getFullYear());
     const mm   = String(now.getMonth() + 1).padStart(2, '0');
@@ -722,8 +720,8 @@ async function addAppSheetRecord(driveFileId, uploadedName) {
         Rows      : [row]
     });
 
-    console.log('[AppSheet] POST', url);
-    console.log('[AppSheet] Row:', row);
+    console.log('[addRecord] POST', url);
+    console.log('[addRecord] Row:', row);
 
     const r = await fetch(url, {
         method : 'POST',
@@ -735,9 +733,9 @@ async function addAppSheetRecord(driveFileId, uploadedName) {
     });
 
     const text = await r.text();
-    console.log('[AppSheet] Response', r.status, text);
+    console.log('[addRecord] Response', r.status, text);
 
-    if (!r.ok) throw new Error(`AppSheet error ${r.status}: ${text}`);
+    if (!r.ok) throw new Error(`Record API error ${r.status}: ${text}`);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -827,8 +825,8 @@ async function runUpload(item) {
         // 3. Make file publicly accessible
         await makePublic(driveFile.id);
 
-        // 4. Add record to AppSheet
-        await addAppSheetRecord(driveFile.id, uploadedName);
+        // 4. Add record
+        await addRecord(driveFile.id, uploadedName);
 
         setStatus(item, 'success');
     } catch (e) {
