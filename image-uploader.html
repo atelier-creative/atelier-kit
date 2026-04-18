@@ -512,9 +512,8 @@ function showDebug() {
 
 function isWebView() {
     const ua = navigator.userAgent;
-    if (/Android/.test(ua) && /wv/.test(ua)) return true;
-    if (/Android/.test(ua) && /Version\//.test(ua)) return true;
-    if (/iPhone|iPad/.test(ua) && !/Safari/.test(ua)) return true;
+    if (/Android/.test(ua) && /wv/.test(ua)) return true;          // Android WebView (explicit flag)
+    if (/iPhone|iPad/.test(ua) && !/Safari\//.test(ua)) return true; // iOS WKWebView (no Safari/ token)
     return false;
 }
 
