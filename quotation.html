@@ -184,6 +184,7 @@
         .s-label { font-weight: 500; }
         .s-value { font-weight: 700; }
         .row-subtotal  { background: var(--cream); color: #555; }
+        .row-sub-info  { background: var(--cream); color: #777; font-size: 13px; }
         .row-discount  { background: #fff8ea; color: #9a6200; }
         .row-deposit   { background: #f3f0f8; color: #5a3e82; }
         .row-grandtotal {
@@ -224,7 +225,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 8px 16px;
         }
-        .footer-bank .info-label { margin-top: 1px; }
 
         /* ── Share bar ───────────────────────────────── */
         .share-bar {
@@ -325,6 +325,7 @@
             <span class="s-value" id="summarySubTotal"></span>
         </div>
         <div id="discountRows"></div>
+        <div id="subTotalRows"></div>
         <div class="summary-row row-grandtotal">
             <span class="s-label">Cần thanh toán</span>
             <span class="s-value" id="summaryGrandTotal"></span>
@@ -340,16 +341,16 @@
             </div>
             <div class="footer-bank">
                 <div class="info-item">
-                    <span class="info-value" id="footerBankName"></span>
                     <span class="info-label">Ngân hàng</span>
+                    <span class="info-value" id="footerBankName"></span>
                 </div>
                 <div class="info-item">
-                    <span class="info-value" id="footerBankAccount"></span>
                     <span class="info-label">Số tài khoản</span>
+                    <span class="info-value" id="footerBankAccount"></span>
                 </div>
                 <div class="info-item full">
-                    <span class="info-value" id="footerBankOwner"></span>
                     <span class="info-label">Chủ tài khoản</span>
+                    <span class="info-value" id="footerBankOwner"></span>
                 </div>
             </div>
         </div>
@@ -374,7 +375,7 @@
 const KNOWN_PARAMS = [
     'store_title','store_name','store_url','store_logo_width',
     'address','phone','bank_info','qr_code',
-    'items_info','items_image','discount_info',
+    'items_info','items_image','discount_info','sub_total_info',
     'sub_total','grand_total',
     'customer_info',
     'quote_date'
@@ -542,7 +543,7 @@ async function populate() {
 
     // Discount rows — each entry: name:X|price:X|percent:X (percent optional)
     const discounts = parsePipeList(P.discount_info);
-    const container = document.getElementById('discountRows');
+    const discountContainer = document.getElementById('discountRows');
     discounts.forEach(d => {
         const pct   = parseInt(d.percent) || 0;
         const label = pct > 0 ? `${d.name} ${pct}%` : (d.name || 'Chiết khấu');
@@ -550,7 +551,19 @@ async function populate() {
         const row = document.createElement('div');
         row.className = 'summary-row row-discount';
         row.innerHTML = `<span class="s-label">${label}</span><span class="s-value">− ${fmt(price)} ₫</span>`;
-        container.appendChild(row);
+        discountContainer.appendChild(row);
+    });
+
+    // Sub-total info rows — each entry: name:X|value:X; skip if value=0
+    const subInfos = parsePipeList(P.sub_total_info);
+    const subContainer = document.getElementById('subTotalRows');
+    subInfos.forEach(s => {
+        const value = parseInt(s.value) || 0;
+        if (!value) return;
+        const row = document.createElement('div');
+        row.className = 'summary-row row-sub-info';
+        row.innerHTML = `<span class="s-label">${s.name || ''}</span><span class="s-value">${fmt(value)} ₫</span>`;
+        subContainer.appendChild(row);
     });
 }
 
