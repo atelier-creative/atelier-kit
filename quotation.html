@@ -204,8 +204,7 @@
         }
         .qr-wrap { flex-shrink: 0; display: none; }
         #qrImg { width: 68px; height: 68px; border-radius: 8px; object-fit: contain; border: 1px solid rgba(201,160,48,.4); }
-        .bank-info { font-size: 12px; color: rgba(255,255,255,.75); line-height: 1.7; }
-        .bank-info strong { color: var(--gold-light); font-size: 13px; }
+        .footer-bank { display: flex; flex-direction: column; gap: 6px; }
 
         /* ── Share bar ───────────────────────────────── */
         .share-bar {
@@ -320,10 +319,19 @@
         <div class="qr-wrap" id="qrWrap">
             <img id="qrImg" alt="QR">
         </div>
-        <div class="bank-info">
-            <strong id="footerBankName"></strong>
-            <div id="footerBankAccount"></div>
-            <div id="footerBankOwner"></div>
+        <div class="footer-bank">
+            <div class="info-item">
+                <span class="info-label">Ngân hàng</span>
+                <span class="info-value" id="footerBankName"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Số tài khoản</span>
+                <span class="info-value" id="footerBankAccount"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Chủ tài khoản</span>
+                <span class="info-value" id="footerBankOwner"></span>
+            </div>
         </div>
     </div>
 
@@ -469,8 +477,8 @@ async function populate() {
     if (P.bank_info) {
         const parts = P.bank_info.split(' - ');
         setText('footerBankName',    parts[0] || '');
-        setText('footerBankAccount', parts[1] ? `STK: ${parts[1]}` : '');
-        setText('footerBankOwner',   parts[2] ? `Chủ TK: ${parts[2]}` : '');
+        setText('footerBankAccount', parts[1] || '');
+        setText('footerBankOwner',   parts[2] || '');
     }
 
     // Footer: QR code
