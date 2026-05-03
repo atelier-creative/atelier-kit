@@ -516,7 +516,8 @@ async function populate() {
     const discounts = parsePipeList(P.discount_info);
     const container = document.getElementById('discountRows');
     discounts.forEach(d => {
-        const label = d.percent ? `${d.name} ${d.percent}%` : (d.name || 'Chiết khấu');
+        const pct   = parseInt(d.percent) || 0;
+        const label = pct > 0 ? `${d.name} ${pct}%` : (d.name || 'Chiết khấu');
         const price = parseInt(d.price) || 0;
         const row = document.createElement('div');
         row.className = 'summary-row row-discount';
