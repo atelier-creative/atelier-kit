@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Giá</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --ink        : #131210;
+            --ink-mid    : #1e1c17;
+            --ink-soft   : #2e2b25;
+            --gold       : #c9a030;
+            --gold-light : #e8c96a;
+            --cream      : #faf6ef;
+            --cream-dark : #e2d9c5;
+            --text-dark  : #1a1710;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Georgia, sans-serif;
+            background: var(--ink);
+            padding: 16px;
+            padding-bottom: 96px;
+        }
+
+        .page {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--cream);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 12px 60px rgba(0,0,0,.7);
+            border: 1px solid rgba(201,160,48,.25);
+        }
+
+        /* ── Header ─────────────────────────────────── */
+        .header {
+            background: var(--ink-mid);
+            padding: 22px 20px 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid var(--gold);
+        }
+        .logo-box {
+            width: 64px;
+            height: 64px;
+            border-radius: 10px;
+            border: 1px solid rgba(201,160,48,.5);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--ink-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #logo { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .logo-placeholder { font-size: 26px; font-weight: 800; color: var(--gold); }
+        .brand { flex: 1; min-width: 0; }
+        .brand-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--gold-light);
+            letter-spacing: .5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .doc-label { text-align: right; flex-shrink: 0; }
+        .doc-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+        .doc-date { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 3px; }
+
+        /* ── Store info ─────────────────────────────── */
+        .store-info {
+            background: var(--ink-soft);
+            padding: 12px 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 20px;
+        }
+        .info-item { display: flex; flex-direction: column; gap: 2px; align-self: start; }
+        .info-item.full { grid-column: 1 / -1; }
+        .info-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--gold);
+            font-weight: 700;
+        }
+        .info-value { font-size: 12px; color: rgba(255,255,255,.85); font-weight: 500; }
+
+        /* ── Customer section ───────────────────────── */
+        .customer-section {
+            padding: 14px 20px;
+            background: var(--cream);
+            border-bottom: 1px solid var(--cream-dark);
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 20px;
+        }
+        .customer-heading {
+            grid-column: 1 / -1;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dark);
+            opacity: .35;
+            margin-bottom: 2px;
+        }
+        .customer-section .info-item { align-self: start; }
+        .customer-section .info-label { color: var(--gold); }
+        .customer-section .info-value { color: var(--text-dark); }
+
+        /* ── Product table ──────────────────────────── */
+        .product-table { width: 100%; border-collapse: collapse; }
+        .product-table thead tr { background: var(--ink-mid); }
+        .product-table thead th {
+            padding: 9px 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--gold);
+        }
+        .th-img   { width: 72px; }
+        .th-name  { text-align: left; }
+        .th-qty   { text-align: center; width: 56px; }
+        .th-total { text-align: right; width: 130px; }
+
+        .product-table tbody tr { border-bottom: 1px solid var(--cream-dark); }
+        .product-table tbody tr:last-child { border-bottom: none; }
+        .product-table tbody tr:nth-child(even) { background: rgba(0,0,0,.025); }
+        .product-table td { padding: 12px; vertical-align: middle; }
+
+        .td-img { text-align: center; }
+        .product-img {
+            width: 56px; height: 56px;
+            border-radius: 8px;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid var(--cream-dark);
+        }
+        .img-placeholder {
+            width: 56px; height: 56px;
+            border-radius: 8px;
+            background: var(--cream-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin: 0 auto;
+        }
+        .product-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+        .product-unit { font-size: 11px; color: #999; margin-top: 2px; }
+        .td-qty   { text-align: center; font-size: 15px; font-weight: 700; color: var(--text-dark); }
+        .td-total { text-align: right; font-size: 13px; font-weight: 700; color: #6b4423; white-space: nowrap; }
+
+        /* ── Summary ────────────────────────────────── */
+        .summary { border-top: 2px solid var(--cream-dark); }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--cream-dark);
+        }
+        .s-label { font-weight: 500; }
+        .s-value { font-weight: 700; }
+        .row-subtotal  { background: var(--cream); color: #555; }
+        .row-discount  { background: #fff8ea; color: #9a6200; }
+        .row-deposit   { background: #f3f0f8; color: #5a3e82; }
+        .row-grandtotal {
+            background: var(--ink-mid);
+            border-bottom: none;
+            padding: 16px 20px;
+        }
+        .row-grandtotal .s-label {
+            font-size: 13px; font-weight: 700;
+            letter-spacing: .5px; text-transform: uppercase;
+            color: rgba(232,201,106,.75);
+        }
+        .row-grandtotal .s-value { font-size: 20px; font-weight: 800; color: var(--gold-light); }
+
+        /* ── Footer ─────────────────────────────────── */
+        .footer {
+            background: var(--ink-soft);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-top: 1px solid rgba(201,160,48,.4);
+        }
+        .qr-wrap { flex-shrink: 0; display: none; }
+        #qrImg { width: 68px; height: 68px; border-radius: 8px; object-fit: contain; border: 1px solid rgba(201,160,48,.4); }
+        .bank-info { font-size: 12px; color: rgba(255,255,255,.75); line-height: 1.7; }
+        .bank-info strong { color: var(--gold-light); font-size: 13px; }
+
+        /* ── Share bar ───────────────────────────────── */
+        .share-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            padding: 12px 16px;
+            background: var(--ink);
+            border-top: 1px solid rgba(201,160,48,.2);
+        }
+        .share-btn {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            margin: 0 auto;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--ink-mid);
+            color: var(--gold-light);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            padding: 13px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: .5px;
+            transition: opacity .2s;
+        }
+        .share-btn:disabled { opacity: .5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="page" id="page">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo-box">
+            <img id="logo" alt="Logo">
+            <span class="logo-placeholder" id="logoPlaceholder"></span>
+        </div>
+        <div class="brand">
+            <div class="brand-name" id="brandName"></div>
+        </div>
+        <div class="doc-label">
+            <div class="doc-title">Báo Giá</div>
+            <div class="doc-date" id="docDate"></div>
+        </div>
+    </div>
+
+    <!-- STORE INFO -->
+    <div class="store-info">
+        <div class="info-item" id="storePhoneItem">
+            <span class="info-label">Điện thoại</span>
+            <span class="info-value" id="storePhone"></span>
+        </div>
+        <div class="info-item" id="storeBankItem">
+            <span class="info-label">Chuyển khoản</span>
+            <span class="info-value" id="storeBankInfo"></span>
+        </div>
+        <div class="info-item full" id="storeAddressItem">
+            <span class="info-label">Địa chỉ</span>
+            <span class="info-value" id="storeAddress"></span>
+        </div>
+    </div>
+
+    <!-- CUSTOMER -->
+    <div class="customer-section" id="customerSection">
+        <div class="customer-heading">Khách hàng</div>
+        <div class="info-item">
+            <span class="info-label">Họ tên</span>
+            <span class="info-value" id="customerName"></span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Địa chỉ</span>
+            <span class="info-value" id="customerAddress"></span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Điện thoại</span>
+            <span class="info-value" id="customerPhone"></span>
+        </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th class="th-img">Ảnh</th>
+                <th class="th-name">Sản phẩm</th>
+                <th class="th-qty">SL</th>
+                <th class="th-total">Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody id="itemsTbody"></tbody>
+    </table>
+
+    <!-- SUMMARY -->
+    <div class="summary">
+        <div class="summary-row row-subtotal">
+            <span class="s-label">Tổng tiền</span>
+            <span class="s-value" id="summarySubTotal"></span>
+        </div>
+        <div id="discountRows"></div>
+        <div class="summary-row row-grandtotal">
+            <span class="s-label">Cần thanh toán</span>
+            <span class="s-value" id="summaryGrandTotal"></span>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer" id="footer">
+        <div class="qr-wrap" id="qrWrap">
+            <img id="qrImg" alt="QR">
+        </div>
+        <div class="bank-info">
+            <strong id="footerBankName"></strong>
+            <div id="footerBankAccount"></div>
+            <div id="footerBankOwner"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- SHARE BAR — outside .page, not captured -->
+<div class="share-bar">
+    <button class="share-btn" id="shareBtn" onclick="captureAndShare()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+        </svg>
+        Chia sẻ báo giá
+    </button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  PARAMS
+// ══════════════════════════════════════════════════
+const KNOWN_PARAMS = [
+    'store_title','store_name','store_url','store_logo_width',
+    'address','phone','bank_info','qr_code',
+    'items_info','items_image','discount_info',
+    'sub_total','grand_total',
+    'customer_name','customer_phone','customer_address',
+    'quote_date'
+];
+
+function parseParams() {
+    const url = window.location.href;
+    const qi  = url.indexOf('?');
+    if (qi === -1) return {};
+    const qs = url.substring(qi);
+    const get = (name) => {
+        const re = new RegExp(`[?&]${name}=`);
+        const m  = qs.match(re);
+        if (!m) return '';
+        const after = qs.substring(m.index + m[0].length);
+        const ends  = KNOWN_PARAMS
+            .filter(p => p !== name)
+            .map(p => after.indexOf(`&${p}=`))
+            .filter(i => i !== -1);
+        const end = ends.length ? Math.min(...ends) : after.length;
+        try { return decodeURIComponent(after.substring(0, end)); }
+        catch { return after.substring(0, end); }
+    };
+    return Object.fromEntries(KNOWN_PARAMS.map(p => [p, get(p)]));
+}
+
+const P = parseParams();
+
+// ══════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════
+function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n); }
+
+function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+
+function hide(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+}
+
+async function fetchDataUrl(url) {
+    if (!url) return null;
+    try {
+        const r = await fetch(url, { mode: 'cors', cache: 'no-cache', credentials: 'omit' });
+        if (!r.ok) return null;
+        const blob = await r.blob();
+        return new Promise(res => {
+            const rd = new FileReader();
+            rd.onloadend = () => res(rd.result);
+            rd.readAsDataURL(blob);
+        });
+    } catch { return null; }
+}
+
+function parsePipeList(str) {
+    if (!str) return [];
+    return str.split(' , ').map(s => {
+        const item = {};
+        s.trim().split('|').forEach(pair => {
+            const ci = pair.indexOf(':');
+            if (ci > 0) item[pair.substring(0, ci).trim()] = pair.substring(ci + 1).trim();
+        });
+        return item;
+    });
+}
+
+function parseItems(infoStr, imageStr) {
+    if (!infoStr) return [];
+    const imgs = imageStr ? imageStr.split(/\s*,\s*/).filter(Boolean) : [];
+    return parsePipeList(infoStr).map((item, i) => {
+        if (imgs[i]) item.image_url = imgs[i];
+        return item;
+    });
+}
+
+// ══════════════════════════════════════════════════
+//  POPULATE
+// ══════════════════════════════════════════════════
+async function populate() {
+
+    // Title & date
+    if (P.store_title) document.title = P.store_title;
+    const d = P.quote_date ? new Date(P.quote_date) : new Date();
+    setText('docDate',
+        `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`
+    );
+
+    // Brand name + logo placeholder letter
+    if (P.store_name) {
+        setText('brandName', P.store_name);
+        setText('logoPlaceholder', P.store_name.charAt(0).toUpperCase());
+    }
+
+    // Logo image
+    const logoUrl = await fetchDataUrl(P.store_url);
+    if (logoUrl) {
+        const logo = document.getElementById('logo');
+        logo.src = logoUrl;
+        logo.style.display = 'block';
+        hide('logoPlaceholder');
+    }
+
+    // Store info — hide row if param missing
+    if (P.phone)     setText('storePhone',   P.phone);    else hide('storePhoneItem');
+    if (P.bank_info) setText('storeBankInfo', P.bank_info); else hide('storeBankItem');
+    if (P.address)   setText('storeAddress', P.address);  else hide('storeAddressItem');
+
+    // Customer section — only shown when at least one param present
+    if (P.customer_name || P.customer_phone || P.customer_address) {
+        document.getElementById('customerSection').style.display = 'grid';
+        if (P.customer_name)    setText('customerName',    P.customer_name);
+        if (P.customer_address) setText('customerAddress', P.customer_address);
+        if (P.customer_phone)   setText('customerPhone',   P.customer_phone);
+    }
+
+    // Footer: bank text
+    if (P.bank_info) {
+        const parts = P.bank_info.split(' - ');
+        setText('footerBankName',    parts[0] || '');
+        setText('footerBankAccount', parts[1] ? `STK: ${parts[1]}` : '');
+        setText('footerBankOwner',   parts[2] ? `Chủ TK: ${parts[2]}` : '');
+    }
+
+    // Footer: QR code
+    const qrUrl = await fetchDataUrl(P.qr_code);
+    if (qrUrl) {
+        document.getElementById('qrImg').src = qrUrl;
+        document.getElementById('qrWrap').style.display = 'block';
+    }
+
+    // Hide footer entirely if nothing to show
+    if (!P.bank_info && !qrUrl) hide('footer');
+
+    // Product items
+    const items = parseItems(P.items_info, P.items_image);
+    if (items.length > 0) {
+        const dataUrls = await Promise.all(items.map(it => fetchDataUrl(it.image_url)));
+        const tbody = document.getElementById('itemsTbody');
+        tbody.innerHTML = '';
+        items.forEach((item, i) => {
+            const lineTotal = parseInt(item.line_total) || 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="td-img">${dataUrls[i]
+                    ? `<img class="product-img" src="${dataUrls[i]}" alt="">`
+                    : `<div class="img-placeholder">📦</div>`
+                }</td>
+                <td><div class="product-name">${item.name || ''}</div></td>
+                <td class="td-qty">${item.quantity || 1}</td>
+                <td class="td-total">${fmt(lineTotal)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Summary rows
+    const subTotal   = parseInt(P.sub_total)  || 0;
+    const grandTotal = parseInt(P.grand_total) || subTotal;
+
+    setText('summarySubTotal',   fmt(subTotal)   + ' ₫');
+    setText('summaryGrandTotal', fmt(grandTotal) + ' ₫');
+
+    // Discount rows — each entry: name:X|price:X|percent:X (percent optional)
+    const discounts = parsePipeList(P.discount_info);
+    const container = document.getElementById('discountRows');
+    discounts.forEach(d => {
+        const label = d.percent ? `${d.name} ${d.percent}%` : (d.name || 'Chiết khấu');
+        const price = parseInt(d.price) || 0;
+        const row = document.createElement('div');
+        row.className = 'summary-row row-discount';
+        row.innerHTML = `<span class="s-label">${label}</span><span class="s-value">− ${fmt(price)} ₫</span>`;
+        container.appendChild(row);
+    });
+}
+
+// ══════════════════════════════════════════════════
+//  SHARE
+// ══════════════════════════════════════════════════
+async function captureAndShare() {
+    const btn = document.getElementById('shareBtn');
+    btn.disabled = true;
+    btn.textContent = 'Đang tạo ảnh...';
+    try {
+        const page   = document.getElementById('page');
+        const canvas = await html2canvas(page, {
+            backgroundColor: '#faf6ef',
+            scale          : 2,
+            useCORS        : false,
+            allowTaint     : true,
+            logging        : false,
+            width          : page.offsetWidth,
+            windowWidth    : page.offsetWidth
+        });
+        const blob = await new Promise((res, rej) =>
+            canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), 'image/png', 0.95)
+        );
+        const file = new File([blob], 'bao-gia.png', { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+            await navigator.share({ title: document.title || 'Báo giá', files: [file] });
+        } else {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(file);
+            a.download = file.name;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    } catch (e) {
+        if (e.name !== 'AbortError') console.error('[share]', e);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+        </svg> Chia sẻ báo giá`;
+    }
+}
+
+window.addEventListener('DOMContentLoaded', populate);
+</script>
+</body>
+</html>
