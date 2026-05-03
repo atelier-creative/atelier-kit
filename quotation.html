@@ -356,7 +356,7 @@ const KNOWN_PARAMS = [
     'address','phone','bank_info','qr_code',
     'items_info','items_image','discount_info',
     'sub_total','grand_total',
-    'customer_name','customer_phone','customer_address',
+    'customer_info',
     'quote_date'
 ];
 
@@ -465,12 +465,13 @@ async function populate() {
     if (P.bank_info) setText('storeBankInfo', P.bank_info); else hide('storeBankItem');
     if (P.address)   setText('storeAddress', P.address);  else hide('storeAddressItem');
 
-    // Customer section — only shown when at least one param present
-    if (P.customer_name || P.customer_phone || P.customer_address) {
+    // Customer section — parsed from customer_info = customer_name:X|customer_phone:X|customer_address:X
+    if (P.customer_info) {
+        const c = parsePipeList(P.customer_info)[0] || {};
         document.getElementById('customerSection').style.display = 'grid';
-        if (P.customer_name)    setText('customerName',    P.customer_name);
-        if (P.customer_address) setText('customerAddress', P.customer_address);
-        if (P.customer_phone)   setText('customerPhone',   P.customer_phone);
+        if (c.customer_name)    setText('customerName',    c.customer_name);
+        if (c.customer_address) setText('customerAddress', c.customer_address);
+        if (c.customer_phone)   setText('customerPhone',   c.customer_phone);
     }
 
     // Footer: bank text
