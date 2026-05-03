@@ -224,8 +224,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 8px 16px;
         }
-        /* value-first layout: value on top, label below */
-        .footer-bank .info-item { flex-direction: column-reverse; }
         .footer-bank .info-label { margin-top: 1px; }
 
         /* ── Share bar ───────────────────────────────── */
@@ -565,22 +563,20 @@ async function captureAndShare() {
     btn.textContent = 'Đang tạo ảnh...';
     try {
         const page   = document.getElementById('page');
-        const raw    = await html2canvas(page, {
+        const canvas = await html2canvas(page, {
             backgroundColor: '#faf6ef',
             scale          : 2,
             useCORS        : false,
             allowTaint     : true,
             logging        : false,
-            width          : page.offsetWidth,
-            windowWidth    : page.offsetWidth
+            onclone: (doc) => {
+                // Remove body padding so the page element starts at x:0 in the
+                // cloned document — prevents extra whitespace on the right
+                doc.body.style.padding  = '0';
+                doc.body.style.margin   = '0';
+                doc.body.style.minWidth = 'unset';
+            }
         });
-
-        // Crop to exact element size — html2canvas sometimes adds extra space on the right
-        const scale  = 2;
-        const canvas = document.createElement('canvas');
-        canvas.width  = page.offsetWidth  * scale;
-        canvas.height = page.offsetHeight * scale;
-        canvas.getContext('2d').drawImage(raw, 0, 0);
 
         const blob = await new Promise((res, rej) =>
             canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), 'image/png', 0.95)
