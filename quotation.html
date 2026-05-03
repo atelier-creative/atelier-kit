@@ -107,15 +107,20 @@
             grid-template-columns: 1fr 1fr;
             gap: 8px 20px;
         }
-        .customer-heading {
+        /* section headings — dark bg variant (store-info, footer) */
+        .section-heading {
             grid-column: 1 / -1;
             font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.5px;
+            color: rgba(255,255,255,.3);
+            margin-bottom: 2px;
+        }
+        /* section headings — light bg variant (customer) */
+        .section-heading.on-cream {
             color: var(--text-dark);
             opacity: .35;
-            margin-bottom: 2px;
         }
         .customer-section .info-item { align-self: start; }
         .customer-section .info-label { color: var(--gold); }
@@ -202,9 +207,26 @@
             gap: 16px;
             border-top: 1px solid rgba(201,160,48,.4);
         }
+        .footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .footer-body {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
         .qr-wrap { flex-shrink: 0; display: none; }
-        #qrImg { width: 68px; height: 68px; border-radius: 8px; object-fit: contain; border: 1px solid rgba(201,160,48,.4); }
-        .footer-bank { display: flex; flex-direction: column; gap: 6px; }
+        #qrImg { width: 96px; height: 96px; border-radius: 10px; object-fit: contain; border: 1px solid rgba(201,160,48,.4); }
+        .footer-bank {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 16px;
+        }
+        /* value-first layout: value on top, label below */
+        .footer-bank .info-item { flex-direction: column-reverse; }
+        .footer-bank .info-label { margin-top: 1px; }
 
         /* ── Share bar ───────────────────────────────── */
         .share-bar {
@@ -257,13 +279,10 @@
 
     <!-- STORE INFO -->
     <div class="store-info">
+        <div class="section-heading">Cửa hàng</div>
         <div class="info-item" id="storePhoneItem">
             <span class="info-label">Điện thoại</span>
             <span class="info-value" id="storePhone"></span>
-        </div>
-        <div class="info-item" id="storeBankItem">
-            <span class="info-label">Chuyển khoản</span>
-            <span class="info-value" id="storeBankInfo"></span>
         </div>
         <div class="info-item full" id="storeAddressItem">
             <span class="info-label">Địa chỉ</span>
@@ -273,7 +292,7 @@
 
     <!-- CUSTOMER -->
     <div class="customer-section" id="customerSection">
-        <div class="customer-heading">Khách hàng</div>
+        <div class="section-heading on-cream">Khách hàng</div>
         <div class="info-item">
             <span class="info-label">Họ tên</span>
             <span class="info-value" id="customerName"></span>
@@ -316,21 +335,24 @@
 
     <!-- FOOTER -->
     <div class="footer" id="footer">
-        <div class="qr-wrap" id="qrWrap">
-            <img id="qrImg" alt="QR">
-        </div>
-        <div class="footer-bank">
-            <div class="info-item">
-                <span class="info-label">Ngân hàng</span>
-                <span class="info-value" id="footerBankName"></span>
+        <div class="section-heading">Thanh toán</div>
+        <div class="footer-body">
+            <div class="qr-wrap" id="qrWrap">
+                <img id="qrImg" alt="QR">
             </div>
-            <div class="info-item">
-                <span class="info-label">Số tài khoản</span>
-                <span class="info-value" id="footerBankAccount"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Chủ tài khoản</span>
-                <span class="info-value" id="footerBankOwner"></span>
+            <div class="footer-bank">
+                <div class="info-item">
+                    <span class="info-value" id="footerBankName"></span>
+                    <span class="info-label">Ngân hàng</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-value" id="footerBankAccount"></span>
+                    <span class="info-label">Số tài khoản</span>
+                </div>
+                <div class="info-item full">
+                    <span class="info-value" id="footerBankOwner"></span>
+                    <span class="info-label">Chủ tài khoản</span>
+                </div>
             </div>
         </div>
     </div>
@@ -461,9 +483,8 @@ async function populate() {
     }
 
     // Store info — hide row if param missing
-    if (P.phone)     setText('storePhone',   P.phone);    else hide('storePhoneItem');
-    if (P.bank_info) setText('storeBankInfo', P.bank_info); else hide('storeBankItem');
-    if (P.address)   setText('storeAddress', P.address);  else hide('storeAddressItem');
+    if (P.phone)   setText('storePhone',   P.phone);   else hide('storePhoneItem');
+    if (P.address) setText('storeAddress', P.address); else hide('storeAddressItem');
 
     // Customer section — parsed from customer_info = customer_name:X|customer_phone:X|customer_address:X
     if (P.customer_info) {
