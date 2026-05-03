@@ -461,10 +461,17 @@ async function populate() {
 
     // Title & date
     if (P.store_title) document.title = P.store_title;
-    const d = P.quote_date ? new Date(P.quote_date) : new Date();
-    setText('docDate',
-        `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`
-    );
+    let displayDate;
+    if (!P.quote_date) {
+        const d = new Date();
+        displayDate = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    } else if (P.quote_date.includes('/')) {
+        displayDate = P.quote_date.split(' ')[0]; // already DD/MM/YYYY, strip time if present
+    } else {
+        const d = new Date(P.quote_date);
+        displayDate = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+    setText('docDate', displayDate);
 
     // Brand name + logo placeholder letter
     if (P.store_name) {
