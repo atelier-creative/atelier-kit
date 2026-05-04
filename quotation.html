@@ -543,7 +543,7 @@ async function populate() {
 
     // Summary rows
     const subTotal   = parseInt(P.sub_total)  || 0;
-    const grandTotal = parseInt(P.grand_total) || subTotal;
+    const grandTotal = P.grand_total !== '' ? parseInt(P.grand_total) : subTotal;
 
     setText('summarySubTotal',   fmt(subTotal)   + ' ₫');
     setText('summaryGrandTotal', fmt(grandTotal) + ' ₫');
