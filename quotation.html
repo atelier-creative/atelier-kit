@@ -584,17 +584,16 @@ async function captureAndShare() {
     try {
         const page   = document.getElementById('page');
         const canvas = await html2canvas(page, {
-            backgroundColor: null,
+            backgroundColor: '#131210',
             scale          : 2,
             useCORS        : false,
             allowTaint     : true,
             logging        : false,
             onclone: (doc) => {
-                // Remove body padding so the page element starts at x:0 in the
-                // cloned document — prevents extra whitespace on the right
                 doc.body.style.padding  = '0';
                 doc.body.style.margin   = '0';
                 doc.body.style.minWidth = 'unset';
+                doc.getElementById('page').style.border = 'none';
             }
         });
 
