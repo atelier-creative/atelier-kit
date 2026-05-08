@@ -337,7 +337,7 @@
   // Parse URL query parameter to get image URLs
   function getImageUrlsFromQuery() {
     const fullUrl = window.location.href;
-    const qIndex = fullUrl.indexOf('?q=');
+    const qIndex = fullUrl.indexOf('?q=') !== -1 ? fullUrl.indexOf('?q=') : fullUrl.indexOf('&q=');
     if (qIndex === -1) return [];
 
     const after = fullUrl.substring(qIndex + 3);
