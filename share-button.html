@@ -336,28 +336,25 @@
 
   // Parse URL query parameter to get image URLs
   function getImageUrlsFromQuery() {
-    // Get the full query string after '?q='
     const fullUrl = window.location.href;
     const qIndex = fullUrl.indexOf('?q=');
+    if (qIndex === -1) return [];
 
-    if (qIndex === -1) {
-      return [];
-    }
+    const after = fullUrl.substring(qIndex + 3);
 
-    // Get everything after '?q='
-    const qParam = fullUrl.substring(qIndex + 3);  // +3 to skip '?q='
+    // Stop before any known non-image params (they follow the AppSheet image URL)
+    const stopParams = ['&wholesale_price=', '&retail_price=', '&m=', '&v='];
+    const stops = stopParams.map(p => after.indexOf(p)).filter(i => i !== -1);
+    const end = stops.length ? Math.min(...stops) : after.length;
 
-    // Decode the parameter value
-    const decodedParam = decodeURIComponent(qParam);
+    const qValue = after.substring(0, end);
+    let decoded;
+    try { decoded = decodeURIComponent(qValue); } catch { decoded = qValue; }
 
-    // Split by comma (with optional surrounding spaces) and trim whitespace
-    // The URLs should be properly separated by commas in the original link
-    const urls = decodedParam
-            .split(/\s*,\s*/)  // Split by comma with optional whitespace
-            .map(url => url.trim())
-            .filter(url => url.length > 0 && url.startsWith('http'));  // Validate URLs
-
-    return urls;
+    return decoded
+      .split(/\s*,\s*/)
+      .map(url => url.trim())
+      .filter(url => url.length > 0 && url.startsWith('http'));
   }
 
   function renderPreviewMessage() {
