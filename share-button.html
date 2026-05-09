@@ -217,9 +217,36 @@
       font-weight: 600;
       color: #c9302c;
     }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 100;
+    }
+    .loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #c9302c;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: #999; letter-spacing: .3px; }
   </style>
 </head>
 <body>
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Đang tải...</div>
+</div>
+
 <div class="container">
   <div id="priceSelector" class="price-selector" style="display:none;">
     <div class="price-selector-label">Giá bán (lẻ / sỉ)</div>
@@ -239,12 +266,12 @@
     <div class="price-selector-label">Ảnh chia sẻ</div>
     <div class="price-radio-group">
       <label class="price-radio-option">
-        <input type="radio" name="imageMode" value="all" checked>
-        Tất cả ảnh
+        <input type="radio" name="imageMode" value="thumbnail" checked>
+        Ảnh đại diện
       </label>
       <label class="price-radio-option">
-        <input type="radio" name="imageMode" value="thumbnail">
-        Ảnh đại diện
+        <input type="radio" name="imageMode" value="all">
+        Tất cả ảnh
       </label>
     </div>
   </div>
@@ -263,7 +290,10 @@
   <button id="shareBtn" class="share-btn">Share</button>
   <div id="message" class="message"></div>
   <div id="previewText" class="preview-text"></div>
+  <div id="previewImagesLabel" style="display:none; margin-top:16px; font-size:12px; font-weight:600; color:#888; text-transform:uppercase; letter-spacing:.5px; text-align:left;">Tất cả ảnh</div>
   <div id="previewImages" class="preview-images"></div>
+  <div id="previewThumbnailLabel" style="display:none; margin-top:16px; font-size:12px; font-weight:600; color:#888; text-transform:uppercase; letter-spacing:.5px; text-align:left;">Ảnh đại diện</div>
+  <div id="previewThumbnail" class="preview-images" style="grid-template-columns: repeat(1, 1fr); max-width:120px;"></div>
 </div>
 
 <script>
@@ -313,6 +343,22 @@
     return raw.replace(/HERE_PRICE/g, selectedPrice);
   }
 
+  async function renderPreviewThumbnail() {
+    const thumbUrl = getThumbnailFromQuery();
+    if (!thumbUrl) return;
+    const wrap = document.getElementById('previewThumbnail');
+    const label = document.getElementById('previewThumbnailLabel');
+    try {
+      const file = await fetchImageAsFile(thumbUrl, 0);
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.alt = 'thumbnail';
+      wrap.appendChild(img);
+      label.style.display = 'block';
+      wrap.style.display = 'grid';
+    } catch { /* silently skip */ }
+  }
+
   async function renderPreviewImages() {
     const wrap = document.getElementById('previewImages');
     if (!wrap) return;
@@ -326,6 +372,7 @@
       return;
     }
 
+    document.getElementById('previewImagesLabel').style.display = 'block';
     wrap.style.display = 'grid';
 
     imageFiles.forEach((file, idx) => {
@@ -647,7 +694,9 @@
     }
 
     renderPreviewMessage();
-    renderPreviewImages();
+    Promise.all([renderPreviewImages(), renderPreviewThumbnail()]).finally(() => {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    });
   });
 </script>
 </body>
