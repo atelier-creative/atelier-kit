@@ -487,7 +487,7 @@
   function typeBadgeClass(type) {
     const t = (type || '').toUpperCase();
     if (t === 'PDF') return 'pdf';
-    if (t.includes('HÌNH') || t.includes('HINH') || t.includes('IMAGE')) return 'image';
+    if (t) return 'image';
     return 'unknown';
   }
 
