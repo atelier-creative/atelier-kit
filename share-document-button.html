@@ -461,16 +461,20 @@
       cb.dataset.index = i;
       cb.addEventListener('change', () => card.classList.toggle('selected', cb.checked));
 
-      // Thumbnail: use full image URL from image param
+      // Thumbnail: set src directly so the browser loads it as an image (avoids CORS
+      // preflight that would be triggered by fetch()). Falls back to icon on error.
       let thumbEl;
       if (fullImageUrl) {
         thumbEl = document.createElement('img');
         thumbEl.className = 'doc-thumb';
         thumbEl.alt = doc.title;
-        fetch(fullImageUrl, { mode: 'cors', cache: 'no-cache', credentials: 'omit' })
-          .then(r => r.ok ? r.blob() : null)
-          .then(blob => { if (blob && blob.size > 0) thumbEl.src = URL.createObjectURL(blob); })
-          .catch(() => {});
+        thumbEl.onerror = () => {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'doc-thumb-placeholder';
+          placeholder.textContent = typeIcon(doc.type);
+          thumbEl.replaceWith(placeholder);
+        };
+        thumbEl.src = fullImageUrl;
       } else {
         thumbEl = document.createElement('div');
         thumbEl.className = 'doc-thumb-placeholder';
