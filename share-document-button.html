@@ -566,22 +566,32 @@
       const shareData = {};
       const itemsToShare = [];
 
+      const docs = parseDocuments();
+      const checkboxes = document.querySelectorAll('#docList input[type="checkbox"]');
+      const selectedIndices = Array.from(checkboxes)
+        .map((cb, i) => cb.checked ? i : -1)
+        .filter(i => i !== -1);
+
       if (includeText) {
-        const text = getMessageFromQuery();
-        if (text) {
-          shareData.text = text;
+        const parts = [];
+        const m = getMessageFromQuery();
+        if (m) parts.push(m);
+        for (const i of selectedIndices) {
+          const doc = docs[i];
+          const lines = [];
+          if (doc.title) lines.push(doc.title);
+          if (doc.note) lines.push(doc.note);
+          if (lines.length) parts.push(lines.join('\n'));
+        }
+        if (parts.length) {
+          shareData.text = parts.join('\n\n');
           itemsToShare.push('text');
         }
       }
 
       if (includeDocs) {
-        const docs = parseDocuments();
         const documentUrls = getDocumentUrls();
         const imageUrls = getImageUrls();
-        const checkboxes = document.querySelectorAll('#docList input[type="checkbox"]');
-        const selectedIndices = Array.from(checkboxes)
-          .map((cb, i) => cb.checked ? i : -1)
-          .filter(i => i !== -1);
 
         if (selectedIndices.length > 0) {
           showMessage(`Đang tải ${selectedIndices.length} tài liệu...`, 'info');
