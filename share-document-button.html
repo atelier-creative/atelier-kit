@@ -381,9 +381,13 @@
     try { q = decodeURIComponent(raw); } catch { q = raw; }
 
     // Entries are delimited by ',|' (also ', |' or ' , |').
+    // The split consumes the '|', but that '|' is actually the leading field
+    // separator for the next entry (empty title slot) — so prepend it back.
     // Fields within each entry: Title|DocPath|ImagePath|Type|Note
+    const rawEntries = q.split(/\s*,\s*\|/);
     const docs = [];
-    for (const entry of q.split(/\s*,\s*\|/)) {
+    for (let ei = 0; ei < rawEntries.length; ei++) {
+      const entry = ei === 0 ? rawEntries[ei] : '|' + rawEntries[ei];
       const parts     = entry.split('|');
       const title     = (parts[0] || '').trim();
       const docPath   = (parts[1] || '').trim();
