@@ -61,6 +61,29 @@
       color: #999;
     }
 
+    .share-btn.loading {
+      background: #a02622;
+      cursor: not-allowed;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .share-btn.loading .btn-spinner { display: block; }
+
     .message {
       margin-top: 20px;
       padding: 12px 16px;
@@ -310,7 +333,7 @@
     <div class="doc-list" id="docList"></div>
   </div>
 
-  <button id="shareBtn" class="share-btn">Chia sẻ</button>
+  <button id="shareBtn" class="share-btn"><span class="btn-spinner"></span><span id="shareBtnLabel">Chia sẻ</span></button>
   <div id="message" class="message"></div>
   <div id="previewText" class="preview-text" style="display:none;"></div>
 </div>
@@ -553,6 +576,13 @@
 
   // --- Share ---
 
+  function setShareLoading(on, label) {
+    const lbl = document.getElementById('shareBtnLabel');
+    shareBtn.disabled = on;
+    shareBtn.classList.toggle('loading', on);
+    lbl.textContent = on ? (label || 'Đang tải...') : 'Chia sẻ';
+  }
+
   shareBtn.addEventListener('click', async () => {
     try {
       const includeText = document.getElementById('toggleText').checked;
@@ -595,6 +625,7 @@
 
         if (selectedIndices.length > 0) {
           showMessage(`Đang tải ${selectedIndices.length} tài liệu...`, 'info');
+          setShareLoading(true, `Đang tải ${selectedIndices.length} tài liệu...`);
           const files = [];
 
           for (const i of selectedIndices) {
@@ -618,6 +649,7 @@
               const file = await fetchAsFile(fullUrl, fallbackName);
               files.push(file);
             } catch (err) {
+              setShareLoading(false);
               const label = doc.title || `Tài liệu ${i + 1}`;
               showMessage(`Lỗi khi tải "${label}": ${err.message}`, 'error');
               return;
@@ -642,9 +674,12 @@
       }
 
       shareData.title = '';
+      setShareLoading(true, 'Đang chia sẻ...');
       await navigator.share(shareData);
+      setShareLoading(false);
       showMessage(`Đã chia sẻ ${itemsToShare.join(' + ')} thành công!`, 'success');
     } catch (error) {
+      setShareLoading(false);
       if (error.name === 'AbortError') {
         showMessage('Đã huỷ chia sẻ', 'info');
       } else {
