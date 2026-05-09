@@ -665,11 +665,13 @@
   function updateToggleStates() {
     const toggleText = document.getElementById('toggleText');
     const toggleDocs = document.getElementById('toggleDocs');
-    if (!getMessageFromQuery()) {
+    const docs = parseDocuments();
+    const hasText = !!getMessageFromQuery() || docs.some(d => d.title || d.note);
+    if (!hasText) {
       toggleText.disabled = true;
       toggleText.checked = false;
     }
-    if (!parseDocuments().length) {
+    if (!docs.length) {
       toggleDocs.disabled = true;
       toggleDocs.checked = false;
     }
