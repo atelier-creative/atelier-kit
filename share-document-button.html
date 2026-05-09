@@ -362,19 +362,30 @@
     return docs;
   }
 
+  // AppSheet embeds these URLs with double-encoding (%26 for &, %252F for /).
+  // URLSearchParams.get() decodes one layer, leaving %2F for the path separator inside
+  // fileName. AppSheet's server requires a raw / (not %2F) in fileName — same as the
+  // raw URLs AppSheet puts in the q param for share-button.html.
+  // Fully decoding each URL string lets the browser re-normalize it with / intact.
+  function decodeAppSheetUrl(u) {
+    u = u.trim();
+    if (!u) return u;
+    try { return decodeURIComponent(u); } catch { return u; }
+  }
+
   // document param: comma-separated full AppSheet URLs for documents
   // Each position matches the corresponding q entry (empty string = no document for that entry)
   function getDocumentUrls() {
     const val = new URLSearchParams(window.location.search).get('document') || '';
     if (!val) return [];
-    return val.split(',').map(u => u.trim());
+    return val.split(',').map(decodeAppSheetUrl);
   }
 
   // image param: comma-separated full AppSheet image URLs per entry
   function getImageUrls() {
     const val = new URLSearchParams(window.location.search).get('image') || '';
     if (!val) return [];
-    return val.split(',').map(u => u.trim());
+    return val.split(',').map(decodeAppSheetUrl);
   }
 
   // --- Fetch helpers ---
