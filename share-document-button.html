@@ -370,27 +370,26 @@
     }
   }
 
-  // Parse q param: entries are pipe-separated fields in groups of 5
-  // Format: Title|Document|Image|Type|Note  (repeated, no comma between entries)
-  // Commas inside field values are URL-encoded as %2C by AppSheet, so after
-  // URLSearchParams.get('q') decodes them they become literal commas — but since
-  // we split by '|' (pipe), not comma, this is fine.
+  // Parse q param: entries delimited by ',|' (or ', |' / ' , |').
+  // Fields within each entry: Title|DocPath|ImagePath|Type|Note
   function parseDocuments() {
     // Use getRawParam to avoid truncation at raw & inside field values,
-    // then decode so %7C → | before splitting by pipe.
+    // then decode so %7C → | before splitting.
     let raw = getRawParam('q');
     if (!raw) return [];
     let q;
     try { q = decodeURIComponent(raw); } catch { q = raw; }
 
-    const parts = q.split('|');
+    // Entries are delimited by ',|' (also ', |' or ' , |').
+    // Fields within each entry: Title|DocPath|ImagePath|Type|Note
     const docs = [];
-    for (let i = 0; i < parts.length; i += 5) {
-      const title       = (parts[i]   || '').trim();
-      const docPath     = (parts[i+1] || '').trim();
-      const imagePath   = (parts[i+2] || '').trim();
-      const type        = (parts[i+3] || '').trim();
-      const note        = (parts[i+4] || '').trim();
+    for (const entry of q.split(/\s*,\s*\|/)) {
+      const parts     = entry.split('|');
+      const title     = (parts[0] || '').trim();
+      const docPath   = (parts[1] || '').trim();
+      const imagePath = (parts[2] || '').trim();
+      const type      = (parts[3] || '').trim();
+      const note      = (parts[4] || '').trim();
       if (title || docPath || imagePath || type) {
         docs.push({ title, docPath, imagePath, type, note });
       }
