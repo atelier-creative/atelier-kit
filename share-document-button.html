@@ -233,6 +233,16 @@
       font-size: 22px;
     }
 
+    .doc-thumb-placeholder.pdf {
+      background: #fff3e0;
+      border-color: #ffcc80;
+    }
+
+    .doc-thumb-placeholder.image {
+      background: #e8f5e9;
+      border-color: #a5d6a7;
+    }
+
     .doc-info {
       flex: 1;
       min-width: 0;
@@ -519,14 +529,14 @@
         thumbEl.alt = doc.title;
         thumbEl.onerror = () => {
           const placeholder = document.createElement('div');
-          placeholder.className = 'doc-thumb-placeholder';
+          placeholder.className = `doc-thumb-placeholder ${typeBadgeClass(doc.type)}`;
           placeholder.textContent = typeIcon(doc.type);
           thumbEl.replaceWith(placeholder);
         };
         thumbEl.src = fullImageUrl;
       } else {
         thumbEl = document.createElement('div');
-        thumbEl.className = 'doc-thumb-placeholder';
+        thumbEl.className = `doc-thumb-placeholder ${typeBadgeClass(doc.type)}`;
         thumbEl.textContent = typeIcon(doc.type);
       }
 
