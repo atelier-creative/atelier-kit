@@ -362,30 +362,43 @@
     return docs;
   }
 
-  // AppSheet embeds these URLs with double-encoding (%26 for &, %252F for /).
-  // URLSearchParams.get() decodes one layer, leaving %2F for the path separator inside
-  // fileName. AppSheet's server requires a raw / (not %2F) in fileName — same as the
-  // raw URLs AppSheet puts in the q param for share-button.html.
-  // Fully decoding each URL string lets the browser re-normalize it with / intact.
-  function decodeAppSheetUrl(u) {
-    u = u.trim();
-    if (!u) return u;
-    try { return decodeURIComponent(u); } catch { return u; }
+  // document and image params contain AppSheet URLs with raw (unencoded) & inside,
+  // so URLSearchParams.get() would truncate at the first &. Use scan-forward instead.
+  // Known top-level params used as stop boundaries.
+  const KNOWN_TOP_PARAMS = ['&document=', '&image=', '&q=', '&v=', '&m='];
+
+  function getRawParam(paramName) {
+    const href = window.location.href;
+    const key = '&' + paramName + '=';
+    const key0 = '?' + paramName + '=';
+    let start = -1;
+    const i0 = href.indexOf(key0);
+    const i1 = href.indexOf(key);
+    if (i0 !== -1) start = i0 + key0.length;
+    else if (i1 !== -1) start = i1 + key.length;
+    if (start === -1) return '';
+
+    const stopKey = '&' + paramName + '=';
+    const stops = KNOWN_TOP_PARAMS
+      .filter(s => s !== stopKey)
+      .map(s => href.indexOf(s, start))
+      .filter(i => i !== -1);
+    const end = stops.length ? Math.min(...stops) : href.length;
+    return href.substring(start, end);
   }
 
-  // document param: comma-separated full AppSheet URLs for documents
-  // Each position matches the corresponding q entry (empty string = no document for that entry)
+  // document param: comma-separated full AppSheet document URLs per entry
   function getDocumentUrls() {
-    const val = new URLSearchParams(window.location.search).get('document') || '';
-    if (!val) return [];
-    return val.split(',').map(decodeAppSheetUrl);
+    const raw = getRawParam('document');
+    if (!raw) return [];
+    return raw.split(',').map(u => u.trim());
   }
 
   // image param: comma-separated full AppSheet image URLs per entry
   function getImageUrls() {
-    const val = new URLSearchParams(window.location.search).get('image') || '';
-    if (!val) return [];
-    return val.split(',').map(decodeAppSheetUrl);
+    const raw = getRawParam('image');
+    if (!raw) return [];
+    return raw.split(',').map(u => u.trim());
   }
 
   // --- Fetch helpers ---
