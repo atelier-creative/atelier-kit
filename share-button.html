@@ -235,6 +235,20 @@
     </div>
   </div>
 
+  <div id="imageModeSelector" class="price-selector" style="display:none;">
+    <div class="price-selector-label">Ảnh chia sẻ</div>
+    <div class="price-radio-group">
+      <label class="price-radio-option">
+        <input type="radio" name="imageMode" value="all" checked>
+        Tất cả ảnh
+      </label>
+      <label class="price-radio-option">
+        <input type="radio" name="imageMode" value="thumbnail">
+        Ảnh đại diện
+      </label>
+    </div>
+  </div>
+
   <div class="share-options">
     <div class="toggle-option">
       <input type="checkbox" id="toggleText" checked>
@@ -343,7 +357,7 @@
     const after = fullUrl.substring(qIndex + 3);
 
     // Stop before any known non-image params (they follow the AppSheet image URL)
-    const stopParams = ['&wholesale_price=', '&retail_price=', '&m=', '&v='];
+    const stopParams = ['&wholesale_price=', '&retail_price=', '&m=', '&v=', '&thumbnail='];
     const stops = stopParams.map(p => after.indexOf(p)).filter(i => i !== -1);
     const end = stops.length ? Math.min(...stops) : after.length;
 
@@ -355,6 +369,18 @@
       .split(/\s*,\s*/)
       .map(url => url.trim())
       .filter(url => url.length > 0 && url.startsWith('http'));
+  }
+
+  function getThumbnailFromQuery() {
+    const fullUrl = window.location.href;
+    const key = '&thumbnail=';
+    const idx = fullUrl.indexOf(key);
+    if (idx === -1) return '';
+    const after = fullUrl.substring(idx + key.length);
+    const stopParams = ['&wholesale_price=', '&retail_price=', '&m=', '&v=', '&q=', '?q='];
+    const stops = stopParams.map(p => after.indexOf(p)).filter(i => i !== -1);
+    const end = stops.length ? Math.min(...stops) : after.length;
+    try { return decodeURIComponent(after.substring(0, end)); } catch { return after.substring(0, end); }
   }
 
   function renderPreviewMessage() {
@@ -476,23 +502,36 @@
 
       // Handle images
       if (includeImages) {
-        const imageUrls = getImageUrlsFromQuery();
+        const imageMode = document.querySelector('input[name="imageMode"]:checked')?.value || 'all';
 
-        if (imageUrls.length > 0) {
-          showMessage(`Loading ${imageUrls.length} image(s)...`, 'info');
-
-          // Fetch all images and convert to File objects
-          let imageFiles;
-          try {
-            imageFiles = await getImageFilesOnce();
-          } catch (fetchError) {
-            console.error('Fetch error:', fetchError);
-            showMessage('Failed to load images: ' + fetchError.message, 'error');
-            return;
+        if (imageMode === 'thumbnail') {
+          const thumbUrl = getThumbnailFromQuery();
+          if (thumbUrl) {
+            showMessage('Loading thumbnail...', 'info');
+            try {
+              const thumbFile = await fetchImageAsFile(thumbUrl, 0);
+              shareData.files = [thumbFile];
+              itemsToShare.push('thumbnail');
+            } catch (fetchError) {
+              showMessage('Failed to load thumbnail: ' + fetchError.message, 'error');
+              return;
+            }
           }
-
-          shareData.files = imageFiles;
-          itemsToShare.push(`${imageFiles.length} image(s)`);
+        } else {
+          const imageUrls = getImageUrlsFromQuery();
+          if (imageUrls.length > 0) {
+            showMessage(`Loading ${imageUrls.length} image(s)...`, 'info');
+            let imageFiles;
+            try {
+              imageFiles = await getImageFilesOnce();
+            } catch (fetchError) {
+              console.error('Fetch error:', fetchError);
+              showMessage('Failed to load images: ' + fetchError.message, 'error');
+              return;
+            }
+            shareData.files = imageFiles;
+            itemsToShare.push(`${imageFiles.length} image(s)`);
+          }
         }
       }
 
@@ -591,6 +630,11 @@
 
     initPriceSelector();
     updateToggleStates();
+
+    // Show image mode selector only when both full images and thumbnail are available
+    if (imageUrls.length > 0 && getThumbnailFromQuery()) {
+      document.getElementById('imageModeSelector').style.display = 'flex';
+    }
 
     let parts = [];
     if (messageFromUrl) parts.push('text');
