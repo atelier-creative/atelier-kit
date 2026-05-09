@@ -376,9 +376,12 @@
   // URLSearchParams.get('q') decodes them they become literal commas — but since
   // we split by '|' (pipe), not comma, this is fine.
   function parseDocuments() {
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get('q');
-    if (!q) return [];
+    // Use getRawParam to avoid truncation at raw & inside field values,
+    // then decode so %7C → | before splitting by pipe.
+    let raw = getRawParam('q');
+    if (!raw) return [];
+    let q;
+    try { q = decodeURIComponent(raw); } catch { q = raw; }
 
     const parts = q.split('|');
     const docs = [];
