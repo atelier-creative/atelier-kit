@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chia sẻ tài liệu</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #fafafa;
+      padding: 20px;
+    }
+
+    .container {
+      text-align: center;
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+      max-width: 480px;
+      width: 100%;
+      border: 1px solid #f0f0f0;
+    }
+
+    .share-btn {
+      background: #c9302c;
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 18px;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(201, 48, 44, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .share-btn:hover {
+      background: #a02622;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(201, 48, 44, 0.4);
+    }
+
+    .share-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(201, 48, 44, 0.3);
+    }
+
+    .share-btn:disabled {
+      background: #ddd;
+      cursor: not-allowed;
+      box-shadow: none;
+      color: #999;
+    }
+
+    .message {
+      margin-top: 20px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+      border-left: 4px solid;
+      text-align: left;
+    }
+
+    .message.success {
+      background: #f0f9f4;
+      color: #1e7e34;
+      border-left-color: #28a745;
+      display: block;
+    }
+
+    .message.error {
+      background: #fef5f5;
+      color: #c9302c;
+      border-left-color: #c9302c;
+      display: block;
+    }
+
+    .message.info {
+      background: #fefaf0;
+      color: #856404;
+      border-left-color: #ffc107;
+      display: block;
+    }
+
+    .preview-text {
+      margin-top: 16px;
+      padding: 12px 14px;
+      background: #f8f9fa;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: left;
+      white-space: pre-wrap;
+      color: #333;
+    }
+
+    .share-options {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .toggle-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-option input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #c9302c;
+    }
+
+    .toggle-option label {
+      cursor: pointer;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .toggle-option input[type="checkbox"]:disabled + label {
+      color: #999;
+      cursor: not-allowed;
+    }
+
+    /* Document list */
+    .doc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .doc-list-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .doc-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      background: #fafafa;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .doc-card:hover {
+      background: #f3f3f3;
+    }
+
+    .doc-card.selected {
+      border-color: #c9302c;
+      background: #fff8f8;
+    }
+
+    .doc-card input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+      accent-color: #c9302c;
+    }
+
+    .doc-thumb {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #eee;
+      background: #f0f0f0;
+      flex-shrink: 0;
+    }
+
+    .doc-thumb-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      border: 1px solid #eee;
+      background: #f0f0f0;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .doc-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .doc-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #222;
+      word-break: break-word;
+      margin-bottom: 4px;
+    }
+
+    .doc-note {
+      font-size: 12px;
+      color: #666;
+      word-break: break-word;
+      margin-top: 2px;
+      white-space: pre-wrap;
+    }
+
+    .doc-type-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 4px;
+      letter-spacing: 0.3px;
+    }
+
+    .doc-type-badge.pdf {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    .doc-type-badge.image {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .doc-type-badge.unknown {
+      background: #eeeeee;
+      color: #555;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 100;
+    }
+    .loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #c9302c;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: #999; letter-spacing: .3px; }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Đang tải...</div>
+</div>
+
+<div class="container">
+  <div class="share-options">
+    <div class="toggle-option">
+      <input type="checkbox" id="toggleText" checked>
+      <label for="toggleText">Include Text</label>
+    </div>
+    <div class="toggle-option">
+      <input type="checkbox" id="toggleDocs" checked>
+      <label for="toggleDocs">Include Documents</label>
+    </div>
+  </div>
+
+  <div id="docListWrap" style="display:none;">
+    <div class="doc-list-label">Tài liệu</div>
+    <div class="doc-list" id="docList"></div>
+  </div>
+
+  <button id="shareBtn" class="share-btn">Chia sẻ</button>
+  <div id="message" class="message"></div>
+  <div id="previewText" class="preview-text" style="display:none;"></div>
+</div>
+
+<script>
+  const shareBtn = document.getElementById('shareBtn');
+  const messageDiv = document.getElementById('message');
+
+  if (!navigator.share) {
+    shareBtn.disabled = true;
+    showMessage('Native sharing is not supported on this device/browser', 'error');
+  }
+
+  // --- URL param helpers ---
+
+  function getBaseUrl() {
+    return new URLSearchParams(window.location.search).get('base_url') || '';
+  }
+
+  function buildFileUrl(path) {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const base = getBaseUrl();
+    if (!base) return '';
+    return base.replace(/\/$/, '') + '/' + path;
+  }
+
+  function getMessageFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    const m = params.get('m');
+    if (!m) return '';
+    try {
+      return decodeURIComponent(m);
+    } catch {
+      return decodeURIComponent(m.replace(/%(?![0-9A-Fa-f]{2})/g, '%25'));
+    }
+  }
+
+  // Parse q param: "Title|Document|Image|Type|Note , ..."
+  function parseDocuments() {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    if (!q) return [];
+
+    return q.split(/\s*,\s*/).map(entry => {
+      const parts = entry.split('|');
+      return {
+        title:    (parts[0] || '').trim(),
+        document: (parts[1] || '').trim(),
+        image:    (parts[2] || '').trim(),
+        type:     (parts[3] || '').trim(),
+        note:     (parts[4] || '').trim(),
+      };
+    }).filter(d => d.title || d.document || d.image);
+  }
+
+  // Return the URL of the file to actually share for a doc entry
+  function getSharePath(doc) {
+    // For images: share the image file; for PDF: share the document file
+    // Fall back to whichever field has content
+    const isPdf = doc.type.toUpperCase() === 'PDF';
+    if (isPdf) {
+      return doc.document || doc.image || doc.title;
+    } else {
+      return doc.image || doc.document || doc.title;
+    }
+  }
+
+  // --- Fetch helpers ---
+
+  async function fetchAsFile(url, fallbackName) {
+    const response = await fetch(url, { mode: 'cors', cache: 'no-cache', credentials: 'omit' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const blob = await response.blob();
+    if (blob.size === 0) throw new Error('Empty file');
+
+    let filename = fallbackName;
+    try {
+      const urlObj = new URL(url);
+      const fileNameParam = urlObj.searchParams.get('fileName');
+      if (fileNameParam) {
+        const parts = fileNameParam.split('/');
+        filename = decodeURIComponent(parts[parts.length - 1]);
+      } else {
+        const pathParts = urlObj.pathname.split('/');
+        const last = pathParts[pathParts.length - 1];
+        if (last) filename = decodeURIComponent(last);
+      }
+    } catch { /* keep fallbackName */ }
+
+    let fileType = blob.type;
+    if (!fileType || fileType === 'application/octet-stream') {
+      const ext = filename.split('.').pop().toLowerCase();
+      const mimeTypes = {
+        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+        gif: 'image/gif', webp: 'image/webp', pdf: 'application/pdf'
+      };
+      fileType = mimeTypes[ext] || 'application/octet-stream';
+    }
+
+    return new File([blob], filename, { type: fileType });
+  }
+
+  // --- Render ---
+
+  function renderPreviewMessage() {
+    const previewEl = document.getElementById('previewText');
+    const text = getMessageFromQuery();
+    if (text) {
+      previewEl.textContent = text;
+      previewEl.style.display = 'block';
+    } else {
+      previewEl.style.display = 'none';
+    }
+  }
+
+  function typeBadgeClass(type) {
+    const t = type.toUpperCase();
+    if (t === 'PDF') return 'pdf';
+    if (t === 'HÌNH ẢNH' || t === 'HINH ANH') return 'image';
+    return 'unknown';
+  }
+
+  function typeIcon(type) {
+    const t = type.toUpperCase();
+    if (t === 'PDF') return '📄';
+    return '🖼️';
+  }
+
+  async function renderDocList() {
+    const docs = parseDocuments();
+    const wrap = document.getElementById('docListWrap');
+    const list = document.getElementById('docList');
+
+    if (!docs.length) return;
+
+    wrap.style.display = 'block';
+
+    for (let i = 0; i < docs.length; i++) {
+      const doc = docs[i];
+      const card = document.createElement('div');
+      card.className = 'doc-card selected';
+
+      // Checkbox
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = true;
+      cb.dataset.index = i;
+      cb.addEventListener('change', () => {
+        card.classList.toggle('selected', cb.checked);
+      });
+
+      // Thumbnail
+      const imgUrl = buildFileUrl(doc.image);
+      let thumbEl;
+      if (imgUrl) {
+        thumbEl = document.createElement('img');
+        thumbEl.className = 'doc-thumb';
+        thumbEl.alt = doc.title;
+        // Load thumbnail async
+        fetch(imgUrl, { mode: 'cors', cache: 'no-cache', credentials: 'omit' })
+          .then(r => r.ok ? r.blob() : null)
+          .then(blob => {
+            if (blob && blob.size > 0) thumbEl.src = URL.createObjectURL(blob);
+          })
+          .catch(() => {});
+      } else {
+        thumbEl = document.createElement('div');
+        thumbEl.className = 'doc-thumb-placeholder';
+        thumbEl.textContent = typeIcon(doc.type);
+      }
+
+      // Info
+      const info = document.createElement('div');
+      info.className = 'doc-info';
+
+      if (doc.type) {
+        const badge = document.createElement('span');
+        badge.className = `doc-type-badge ${typeBadgeClass(doc.type)}`;
+        badge.textContent = doc.type;
+        info.appendChild(badge);
+        info.appendChild(document.createElement('br'));
+      }
+
+      const title = document.createElement('div');
+      title.className = 'doc-title';
+      title.textContent = doc.title || doc.document || doc.image;
+      info.appendChild(title);
+
+      if (doc.note) {
+        const note = document.createElement('div');
+        note.className = 'doc-note';
+        note.textContent = doc.note;
+        info.appendChild(note);
+      }
+
+      // Click on card body (not checkbox) toggles checkbox
+      card.addEventListener('click', (e) => {
+        if (e.target !== cb) {
+          cb.checked = !cb.checked;
+          card.classList.toggle('selected', cb.checked);
+        }
+      });
+
+      card.appendChild(cb);
+      card.appendChild(thumbEl);
+      card.appendChild(info);
+      list.appendChild(card);
+    }
+  }
+
+  // --- Share ---
+
+  shareBtn.addEventListener('click', async () => {
+    try {
+      const includeText = document.getElementById('toggleText').checked;
+      const includeDocs = document.getElementById('toggleDocs').checked;
+
+      if (!includeText && !includeDocs) {
+        showMessage('Please select at least one option to share', 'error');
+        return;
+      }
+
+      const shareData = {};
+      const itemsToShare = [];
+
+      if (includeText) {
+        const text = getMessageFromQuery();
+        if (text) {
+          shareData.text = text;
+          itemsToShare.push('text');
+        }
+      }
+
+      if (includeDocs) {
+        const docs = parseDocuments();
+        const checkboxes = document.querySelectorAll('#docList input[type="checkbox"]');
+        const selectedDocs = docs.filter((_, i) => checkboxes[i]?.checked);
+
+        if (selectedDocs.length > 0) {
+          showMessage(`Đang tải ${selectedDocs.length} tài liệu...`, 'info');
+          const files = [];
+          for (let i = 0; i < selectedDocs.length; i++) {
+            const doc = selectedDocs[i];
+            const path = getSharePath(doc);
+            const url = buildFileUrl(path);
+            if (!url) {
+              console.warn(`No URL for doc "${doc.title}"`);
+              continue;
+            }
+            try {
+              const fallbackName = path.split('/').pop() || `doc-${i + 1}`;
+              const file = await fetchAsFile(url, fallbackName);
+              files.push(file);
+            } catch (err) {
+              console.error(`Failed to fetch "${doc.title}":`, err);
+              showMessage(`Lỗi khi tải "${doc.title}": ${err.message}`, 'error');
+              return;
+            }
+          }
+          if (files.length > 0) {
+            shareData.files = files;
+            itemsToShare.push(`${files.length} tài liệu`);
+          }
+        }
+      }
+
+      if (!shareData.text && !shareData.files) {
+        showMessage('Không có nội dung để chia sẻ', 'error');
+        return;
+      }
+
+      if (navigator.canShare && !navigator.canShare(shareData)) {
+        showMessage('Trình duyệt không thể chia sẻ nội dung này', 'error');
+        return;
+      }
+
+      shareData.title = '';
+      await navigator.share(shareData);
+      showMessage(`Đã chia sẻ ${itemsToShare.join(' + ')} thành công!`, 'success');
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        showMessage('Đã huỷ chia sẻ', 'info');
+      } else {
+        showMessage('Lỗi: ' + error.message, 'error');
+        console.error('Share error:', error);
+      }
+    }
+  });
+
+  function showMessage(text, type) {
+    messageDiv.textContent = text;
+    messageDiv.className = 'message ' + type;
+    if (type === 'success' || type === 'info') {
+      setTimeout(() => { messageDiv.className = 'message'; }, 3000);
+    }
+  }
+
+  function updateToggleStates() {
+    const toggleText = document.getElementById('toggleText');
+    const toggleDocs = document.getElementById('toggleDocs');
+
+    if (!getMessageFromQuery()) {
+      toggleText.disabled = true;
+      toggleText.checked = false;
+    }
+
+    if (!parseDocuments().length) {
+      toggleDocs.disabled = true;
+      toggleDocs.checked = false;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    updateToggleStates();
+    renderPreviewMessage();
+
+    const docs = parseDocuments();
+    const hasText = !!getMessageFromQuery();
+
+    if (docs.length > 0) {
+      showMessage(`${docs.length} tài liệu sẵn sàng`, 'info');
+    } else if (hasText) {
+      showMessage('Sẵn sàng chia sẻ văn bản', 'info');
+    } else {
+      showMessage('Thêm nội dung qua tham số URL: ?q=... hoặc ?m=...', 'info');
+    }
+
+    renderDocList().finally(() => {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    });
+  });
+</script>
+</body>
+</html>
