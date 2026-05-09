@@ -404,7 +404,9 @@
   // --- Fetch helpers ---
 
   async function fetchAsFile(url, fallbackName) {
-    const response = await fetch(url, { mode: 'cors', cache: 'no-cache', credentials: 'omit' });
+    let fetchUrl = url;
+    try { fetchUrl = decodeURIComponent(url); } catch { /* keep original */ }
+    const response = await fetch(fetchUrl, { mode: 'cors', cache: 'no-cache', credentials: 'omit' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const blob = await response.blob();
     if (blob.size === 0) throw new Error('Empty file');
