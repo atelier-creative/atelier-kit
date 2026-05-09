@@ -290,10 +290,10 @@
   <button id="shareBtn" class="share-btn">Share</button>
   <div id="message" class="message"></div>
   <div id="previewText" class="preview-text"></div>
-  <div id="previewImagesLabel" style="display:none; margin-top:16px; font-size:12px; font-weight:600; color:#888; text-transform:uppercase; letter-spacing:.5px; text-align:left;">Tất cả ảnh</div>
-  <div id="previewImages" class="preview-images"></div>
   <div id="previewThumbnailLabel" style="display:none; margin-top:16px; font-size:12px; font-weight:600; color:#888; text-transform:uppercase; letter-spacing:.5px; text-align:left;">Ảnh đại diện</div>
   <div id="previewThumbnail" class="preview-images" style="grid-template-columns: repeat(1, 1fr); max-width:120px;"></div>
+  <div id="previewImagesLabel" style="display:none; margin-top:16px; font-size:12px; font-weight:600; color:#888; text-transform:uppercase; letter-spacing:.5px; text-align:left;">Tất cả ảnh</div>
+  <div id="previewImages" class="preview-images"></div>
 </div>
 
 <script>
@@ -643,8 +643,8 @@
       toggleText.checked = false;
     }
 
-    // Disable images toggle if no images available
-    if (imageUrls.length === 0) {
+    // Disable images toggle if no images AND no thumbnail available
+    if (imageUrls.length === 0 && !getThumbnailFromQuery()) {
       toggleImages.disabled = true;
       toggleImages.checked = false;
     }
