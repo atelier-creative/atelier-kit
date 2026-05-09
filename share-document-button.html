@@ -15,12 +15,13 @@
       margin: 0;
       background: #fafafa;
       padding: 20px;
+      box-sizing: border-box;
     }
 
     .container {
       text-align: center;
       background: white;
-      padding: 40px;
+      padding: 32px;
       border-radius: 16px;
       box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
       max-width: 480px;
@@ -138,21 +139,22 @@
     }
 
     /* Document list */
-    .doc-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-      text-align: left;
-    }
-
     .doc-list-label {
       font-size: 12px;
       font-weight: 600;
       color: #888;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
+      text-align: left;
+    }
+
+    .doc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+      text-align: left;
     }
 
     .doc-card {
@@ -164,7 +166,7 @@
       border-radius: 10px;
       background: #fafafa;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s, border-color 0.15s;
     }
 
     .doc-card:hover {
@@ -186,8 +188,8 @@
     }
 
     .doc-thumb {
-      width: 48px;
-      height: 48px;
+      width: 52px;
+      height: 52px;
       object-fit: cover;
       border-radius: 6px;
       border: 1px solid #eee;
@@ -196,8 +198,8 @@
     }
 
     .doc-thumb-placeholder {
-      width: 48px;
-      height: 48px;
+      width: 52px;
+      height: 52px;
       border-radius: 6px;
       border: 1px solid #eee;
       background: #f0f0f0;
@@ -205,7 +207,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 22px;
     }
 
     .doc-info {
@@ -213,20 +215,11 @@
       min-width: 0;
     }
 
-    .doc-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #222;
-      word-break: break-word;
+    .doc-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
       margin-bottom: 4px;
-    }
-
-    .doc-note {
-      font-size: 12px;
-      color: #666;
-      word-break: break-word;
-      margin-top: 2px;
-      white-space: pre-wrap;
     }
 
     .doc-type-badge {
@@ -235,7 +228,6 @@
       font-weight: 600;
       padding: 2px 8px;
       border-radius: 999px;
-      margin-bottom: 4px;
       letter-spacing: 0.3px;
     }
 
@@ -252,6 +244,23 @@
     .doc-type-badge.unknown {
       background: #eeeeee;
       color: #555;
+    }
+
+    .doc-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #222;
+      word-break: break-word;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .doc-note {
+      font-size: 12px;
+      color: #666;
+      word-break: break-word;
+      white-space: pre-wrap;
+      line-height: 1.4;
     }
 
     .loading-overlay {
@@ -317,18 +326,6 @@
 
   // --- URL param helpers ---
 
-  function getBaseUrl() {
-    return new URLSearchParams(window.location.search).get('base_url') || '';
-  }
-
-  function buildFileUrl(path) {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    const base = getBaseUrl();
-    if (!base) return '';
-    return base.replace(/\/$/, '') + '/' + path;
-  }
-
   function getMessageFromQuery() {
     const params = new URLSearchParams(window.location.search);
     const m = params.get('m');
@@ -340,34 +337,44 @@
     }
   }
 
-  // Parse q param: "Title|Document|Image|Type|Note , ..."
+  // Parse q param: entries are pipe-separated fields in groups of 5
+  // Format: Title|Document|Image|Type|Note  (repeated, no comma between entries)
+  // Commas inside field values are URL-encoded as %2C by AppSheet, so after
+  // URLSearchParams.get('q') decodes them they become literal commas — but since
+  // we split by '|' (pipe), not comma, this is fine.
   function parseDocuments() {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
     if (!q) return [];
 
-    return q.split(/\s*,\s*/).map(entry => {
-      const parts = entry.split('|');
-      return {
-        title:    (parts[0] || '').trim(),
-        document: (parts[1] || '').trim(),
-        image:    (parts[2] || '').trim(),
-        type:     (parts[3] || '').trim(),
-        note:     (parts[4] || '').trim(),
-      };
-    }).filter(d => d.title || d.document || d.image);
+    const parts = q.split('|');
+    const docs = [];
+    for (let i = 0; i < parts.length; i += 5) {
+      const title       = (parts[i]   || '').trim();
+      const docPath     = (parts[i+1] || '').trim();
+      const imagePath   = (parts[i+2] || '').trim();
+      const type        = (parts[i+3] || '').trim();
+      const note        = (parts[i+4] || '').trim();
+      if (title || docPath || imagePath || type) {
+        docs.push({ title, docPath, imagePath, type, note });
+      }
+    }
+    return docs;
   }
 
-  // Return the URL of the file to actually share for a doc entry
-  function getSharePath(doc) {
-    // For images: share the image file; for PDF: share the document file
-    // Fall back to whichever field has content
-    const isPdf = doc.type.toUpperCase() === 'PDF';
-    if (isPdf) {
-      return doc.document || doc.image || doc.title;
-    } else {
-      return doc.image || doc.document || doc.title;
-    }
+  // document param: comma-separated full AppSheet URLs for documents
+  // Each position matches the corresponding q entry (empty string = no document for that entry)
+  function getDocumentUrls() {
+    const val = new URLSearchParams(window.location.search).get('document') || '';
+    if (!val) return [];
+    return val.split(',').map(u => u.trim());
+  }
+
+  // image param: comma-separated full AppSheet image URLs per entry
+  function getImageUrls() {
+    const val = new URLSearchParams(window.location.search).get('image') || '';
+    if (!val) return [];
+    return val.split(',').map(u => u.trim());
   }
 
   // --- Fetch helpers ---
@@ -419,29 +426,31 @@
   }
 
   function typeBadgeClass(type) {
-    const t = type.toUpperCase();
+    const t = (type || '').toUpperCase();
     if (t === 'PDF') return 'pdf';
-    if (t === 'HÌNH ẢNH' || t === 'HINH ANH') return 'image';
+    if (t.includes('HÌNH') || t.includes('HINH') || t.includes('IMAGE')) return 'image';
     return 'unknown';
   }
 
   function typeIcon(type) {
-    const t = type.toUpperCase();
+    const t = (type || '').toUpperCase();
     if (t === 'PDF') return '📄';
     return '🖼️';
   }
 
   async function renderDocList() {
     const docs = parseDocuments();
+    const imageUrls = getImageUrls();
     const wrap = document.getElementById('docListWrap');
     const list = document.getElementById('docList');
 
     if (!docs.length) return;
-
     wrap.style.display = 'block';
 
     for (let i = 0; i < docs.length; i++) {
       const doc = docs[i];
+      const fullImageUrl = imageUrls[i] || '';
+
       const card = document.createElement('div');
       card.className = 'doc-card selected';
 
@@ -450,23 +459,17 @@
       cb.type = 'checkbox';
       cb.checked = true;
       cb.dataset.index = i;
-      cb.addEventListener('change', () => {
-        card.classList.toggle('selected', cb.checked);
-      });
+      cb.addEventListener('change', () => card.classList.toggle('selected', cb.checked));
 
-      // Thumbnail
-      const imgUrl = buildFileUrl(doc.image);
+      // Thumbnail: use full image URL from image param
       let thumbEl;
-      if (imgUrl) {
+      if (fullImageUrl) {
         thumbEl = document.createElement('img');
         thumbEl.className = 'doc-thumb';
         thumbEl.alt = doc.title;
-        // Load thumbnail async
-        fetch(imgUrl, { mode: 'cors', cache: 'no-cache', credentials: 'omit' })
+        fetch(fullImageUrl, { mode: 'cors', cache: 'no-cache', credentials: 'omit' })
           .then(r => r.ok ? r.blob() : null)
-          .then(blob => {
-            if (blob && blob.size > 0) thumbEl.src = URL.createObjectURL(blob);
-          })
+          .then(blob => { if (blob && blob.size > 0) thumbEl.src = URL.createObjectURL(blob); })
           .catch(() => {});
       } else {
         thumbEl = document.createElement('div');
@@ -474,31 +477,36 @@
         thumbEl.textContent = typeIcon(doc.type);
       }
 
-      // Info
+      // Info section
       const info = document.createElement('div');
       info.className = 'doc-info';
 
       if (doc.type) {
+        const badges = document.createElement('div');
+        badges.className = 'doc-badges';
         const badge = document.createElement('span');
         badge.className = `doc-type-badge ${typeBadgeClass(doc.type)}`;
         badge.textContent = doc.type;
-        info.appendChild(badge);
-        info.appendChild(document.createElement('br'));
+        badges.appendChild(badge);
+        info.appendChild(badges);
       }
 
-      const title = document.createElement('div');
-      title.className = 'doc-title';
-      title.textContent = doc.title || doc.document || doc.image;
-      info.appendChild(title);
+      const titleEl = document.createElement('div');
+      titleEl.className = 'doc-title';
+      // Show title, or fall back to filename from path
+      const displayTitle = doc.title ||
+        (doc.docPath || doc.imagePath).split('/').pop() || `Tài liệu ${i + 1}`;
+      titleEl.textContent = displayTitle;
+      info.appendChild(titleEl);
 
       if (doc.note) {
-        const note = document.createElement('div');
-        note.className = 'doc-note';
-        note.textContent = doc.note;
-        info.appendChild(note);
+        const noteEl = document.createElement('div');
+        noteEl.className = 'doc-note';
+        noteEl.textContent = doc.note;
+        info.appendChild(noteEl);
       }
 
-      // Click on card body (not checkbox) toggles checkbox
+      // Click card body to toggle checkbox
       card.addEventListener('click', (e) => {
         if (e.target !== cb) {
           cb.checked = !cb.checked;
@@ -538,30 +546,44 @@
 
       if (includeDocs) {
         const docs = parseDocuments();
+        const documentUrls = getDocumentUrls();
+        const imageUrls = getImageUrls();
         const checkboxes = document.querySelectorAll('#docList input[type="checkbox"]');
-        const selectedDocs = docs.filter((_, i) => checkboxes[i]?.checked);
+        const selectedIndices = Array.from(checkboxes)
+          .map((cb, i) => cb.checked ? i : -1)
+          .filter(i => i !== -1);
 
-        if (selectedDocs.length > 0) {
-          showMessage(`Đang tải ${selectedDocs.length} tài liệu...`, 'info');
+        if (selectedIndices.length > 0) {
+          showMessage(`Đang tải ${selectedIndices.length} tài liệu...`, 'info');
           const files = [];
-          for (let i = 0; i < selectedDocs.length; i++) {
-            const doc = selectedDocs[i];
-            const path = getSharePath(doc);
-            const url = buildFileUrl(path);
-            if (!url) {
-              console.warn(`No URL for doc "${doc.title}"`);
+
+          for (const i of selectedIndices) {
+            const doc = docs[i];
+            const isPdf = (doc.type || '').toUpperCase() === 'PDF';
+
+            // Use full URL from document/image params based on type
+            const fullUrl = isPdf
+              ? (documentUrls[i] || imageUrls[i] || '')
+              : (imageUrls[i] || documentUrls[i] || '');
+
+            if (!fullUrl) {
+              console.warn(`No URL available for entry ${i} ("${doc.title}")`);
               continue;
             }
+
+            const fallbackName = (doc.title || `doc-${i + 1}`) +
+              (isPdf ? '.pdf' : '.jpg');
+
             try {
-              const fallbackName = path.split('/').pop() || `doc-${i + 1}`;
-              const file = await fetchAsFile(url, fallbackName);
+              const file = await fetchAsFile(fullUrl, fallbackName);
               files.push(file);
             } catch (err) {
-              console.error(`Failed to fetch "${doc.title}":`, err);
-              showMessage(`Lỗi khi tải "${doc.title}": ${err.message}`, 'error');
+              const label = doc.title || `Tài liệu ${i + 1}`;
+              showMessage(`Lỗi khi tải "${label}": ${err.message}`, 'error');
               return;
             }
           }
+
           if (files.length > 0) {
             shareData.files = files;
             itemsToShare.push(`${files.length} tài liệu`);
@@ -603,12 +625,10 @@
   function updateToggleStates() {
     const toggleText = document.getElementById('toggleText');
     const toggleDocs = document.getElementById('toggleDocs');
-
     if (!getMessageFromQuery()) {
       toggleText.disabled = true;
       toggleText.checked = false;
     }
-
     if (!parseDocuments().length) {
       toggleDocs.disabled = true;
       toggleDocs.checked = false;
@@ -620,11 +640,9 @@
     renderPreviewMessage();
 
     const docs = parseDocuments();
-    const hasText = !!getMessageFromQuery();
-
     if (docs.length > 0) {
       showMessage(`${docs.length} tài liệu sẵn sàng`, 'info');
-    } else if (hasText) {
+    } else if (getMessageFromQuery()) {
       showMessage('Sẵn sàng chia sẻ văn bản', 'info');
     } else {
       showMessage('Thêm nội dung qua tham số URL: ?q=... hoặc ?m=...', 'info');
