@@ -1,818 +1,989 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chia sẻ tài liệu</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      background: #fafafa;
-      padding: 20px;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload ảnh sản phẩm</title>
+    <script src="https://accounts.google.com/gsi/client" async></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .container {
-      text-align: center;
-      background: white;
-      padding: 32px;
-      border-radius: 16px;
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-      max-width: 480px;
-      width: 100%;
-      border: 1px solid #f0f0f0;
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
 
-    .share-btn {
-      background: #c9302c;
-      color: white;
-      border: none;
-      padding: 15px 40px;
-      font-size: 18px;
-      font-weight: 500;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(201, 48, 44, 0.3);
-      letter-spacing: 0.5px;
-    }
+        /* ── Header ─────────────────────────────── */
+        .header {
+            background: #fff;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.12);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-    .share-btn:hover {
-      background: #a02622;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(201, 48, 44, 0.4);
-    }
+        .header-info { flex: 1; min-width: 0; }
+        .header-title { font-size: 15px; font-weight: 700; }
+        .header-subtitle { font-size: 12px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .share-btn:active {
-      transform: translateY(0);
-      box-shadow: 0 2px 6px rgba(201, 48, 44, 0.3);
-    }
+        /* ── Auth section ─────────────────────────── */
+        .auth-section {
+            background: #fff;
+            margin: 20px 16px;
+            border-radius: 14px;
+            padding: 32px 20px;
+            text-align: center;
+            box-shadow: 0 1px 6px rgba(0,0,0,.08);
+        }
+        .auth-section.hidden { display: none; }
+        .auth-icon { font-size: 48px; margin-bottom: 12px; }
+        .auth-desc { font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.5; }
 
-    .share-btn:disabled {
-      background: #ddd;
-      cursor: not-allowed;
-      box-shadow: none;
-      color: #999;
-    }
+        .google-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 11px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .google-btn:hover { background: #3367d6; }
 
-    .share-btn.loading {
-      background: #a02622;
-      cursor: not-allowed;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
+        /* ── Upload button ─────────────────────────── */
+        .upload-area { margin: 14px 16px 10px; display: none; }
 
-    .btn-spinner {
-      display: none;
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      flex-shrink: 0;
-    }
+        .select-btn {
+            width: 100%;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background .2s;
+        }
+        .select-btn:hover { background: #3367d6; }
+        .select-btn:disabled { background: #aaa; cursor: not-allowed; }
 
-    .share-btn.loading .btn-spinner { display: block; }
+        /* ── Image grid ─────────────────────────────── */
+        .image-grid {
+            margin: 0 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
 
-    .message {
-      margin-top: 20px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      display: none;
-      border-left: 4px solid;
-      text-align: left;
-    }
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 20px;
+            color: #ccc;
+        }
+        .empty-state .empty-icon { font-size: 56px; margin-bottom: 10px; }
+        .empty-state p { font-size: 14px; }
 
-    .message.success {
-      background: #f0f9f4;
-      color: #1e7e34;
-      border-left-color: #28a745;
-      display: block;
-    }
+        /* ── Image card ──────────────────────────────── */
+        .image-card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            border: 2px solid transparent;
+            transition: border-color .25s;
+        }
+        .image-card img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            display: block;
+        }
+        .card-info { padding: 8px 8px 10px; }
+        .card-name {
+            font-size: 11px;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 6px;
+        }
+        .card-status-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-icon { font-size: 15px; flex-shrink: 0; }
+        .status-text { font-size: 11px; color: #777; flex: 1; }
+        .progress-bar { height: 3px; background: #e8e8e8; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #4285f4; border-radius: 2px; width: 0; transition: width .2s; }
 
-    .message.error {
-      background: #fef5f5;
-      color: #c9302c;
-      border-left-color: #c9302c;
-      display: block;
-    }
+        /* card state colors */
+        .card-pending  { border-color: transparent; }
+        .card-uploading { border-color: #4285f4; }
+        .card-uploading .status-text { color: #4285f4; }
+        .card-success  { border-color: #34a853; }
+        .card-success  .status-text { color: #34a853; }
+        .card-success  .progress-fill { background: #34a853; }
+        .card-failed   { border-color: #ea4335; }
+        .card-failed   .status-text { color: #ea4335; }
+        .card-cancelled { border-color: #bbb; }
+        .card-cancelled .status-text { color: #aaa; }
+        .card-oversized { border-color: #f9a825; }
+        .card-oversized .status-text { color: #f57f17; }
 
-    .message.info {
-      background: #fefaf0;
-      color: #856404;
-      border-left-color: #ffc107;
-      display: block;
-    }
+        /* ── Summary bar ─────────────────────────────── */
+        .summary-bar {
+            position: fixed;
+            bottom: 64px;
+            left: 0; right: 0;
+            background: rgba(30,30,30,.82);
+            backdrop-filter: blur(6px);
+            color: #fff;
+            padding: 7px 16px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .summary-bar.hidden { display: none; }
 
-    .preview-text {
-      margin-top: 16px;
-      padding: 12px 14px;
-      background: #f8f9fa;
-      border: 1px dashed #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      text-align: left;
-      white-space: pre-wrap;
-      color: #333;
-    }
+        /* ── Product info box ───────────────────────── */
+        .product-box {
+            background: #fff;
+            margin: 14px 16px 0;
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+        .product-box.visible { display: flex; }
+        .product-thumb {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #f0f2f5;
+        }
+        .product-thumb-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: #f0f2f5;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .product-meta { flex: 1; min-width: 0; }
+        .product-label { font-size: 11px; color: #aaa; margin-bottom: 2px; }
+        .product-name { font-size: 14px; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .product-id   { font-size: 11px; color: #888; margin-top: 2px; }
 
-    .share-options {
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      text-align: left;
-    }
+        /* ── Action bar ─────────────────────────────── */
+        .action-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #fff;
+            padding: 10px 14px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 -2px 8px rgba(0,0,0,.1);
+        }
+        .action-bar.hidden { display: none; }
 
-    .toggle-option {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      user-select: none;
-    }
+        .cancel-btn {
+            flex: 1;
+            background: #ea4335;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .cancel-btn:hover { background: #c5221f; }
+        .cancel-btn:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
 
-    .toggle-option input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-      accent-color: #c9302c;
-    }
+        .start-btn {
+            flex: 1;
+            background: #34a853;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .start-btn:hover { background: #2d9146; }
+        .start-btn:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
 
-    .toggle-option label {
-      cursor: pointer;
-      font-size: 16px;
-      color: #333;
-    }
-
-    .toggle-option input[type="checkbox"]:disabled + label {
-      color: #999;
-      cursor: not-allowed;
-    }
-
-    /* Document list */
-    .doc-list-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-      text-align: left;
-    }
-
-    .doc-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-      text-align: left;
-    }
-
-    .doc-card {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px;
-      border: 1px solid #e8e8e8;
-      border-radius: 10px;
-      background: #fafafa;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .doc-card:hover {
-      background: #f3f3f3;
-    }
-
-    .doc-card.selected {
-      border-color: #c9302c;
-      background: #fff8f8;
-    }
-
-    .doc-card input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-      margin-top: 2px;
-      cursor: pointer;
-      accent-color: #c9302c;
-    }
-
-    .fmt-selector {
-      display: flex;
-      gap: 4px;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
-
-    .fmt-btn {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: white;
-      cursor: pointer;
-      color: #666;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    .fmt-btn:hover { background: #f3f3f3; }
-
-    .fmt-btn.active {
-      background: #c9302c;
-      border-color: #c9302c;
-      color: white;
-    }
-
-    .doc-thumb {
-      width: 52px;
-      height: 52px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #eee;
-      background: #f0f0f0;
-      flex-shrink: 0;
-    }
-
-    .doc-thumb-placeholder {
-      width: 52px;
-      height: 52px;
-      border-radius: 6px;
-      border: 1px solid #eee;
-      background: #f0f0f0;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-    }
-
-    .doc-thumb-placeholder.pdf {
-      background: #fff3e0;
-      border-color: #ffcc80;
-    }
-
-    .doc-thumb-placeholder.image {
-      background: #e8f5e9;
-      border-color: #a5d6a7;
-    }
-
-    .doc-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .doc-badges {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 4px;
-    }
-
-    .doc-type-badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 999px;
-      letter-spacing: 0.3px;
-    }
-
-    .doc-type-badge.pdf {
-      background: #fff3e0;
-      color: #e65100;
-    }
-
-    .doc-type-badge.image {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .doc-type-badge.unknown {
-      background: #eeeeee;
-      color: #555;
-    }
-
-    .doc-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #222;
-      word-break: break-word;
-      margin-bottom: 4px;
-      line-height: 1.4;
-    }
-
-    .doc-note {
-      font-size: 12px;
-      color: #666;
-      word-break: break-word;
-      white-space: pre-wrap;
-      line-height: 1.4;
-    }
-
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: #fafafa;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      z-index: 100;
-    }
-    .loading-overlay.hidden { display: none; }
-    .spinner {
-      width: 32px; height: 32px;
-      border: 3px solid #e0e0e0;
-      border-top-color: #c9302c;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text { font-size: 13px; color: #999; letter-spacing: .3px; }
-  </style>
+        .bottom-spacer { height: 120px; }
+    </style>
 </head>
 <body>
 
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text">Đang tải...</div>
+<!-- ── Header ───────────────────────────────────────────── -->
+<div class="header">
+    <div class="header-info">
+        <div class="header-title">Upload ảnh sản phẩm</div>
+        <div class="header-subtitle" id="headerSubtitle">Đang tải...</div>
+    </div>
 </div>
 
-<div class="container">
-  <div class="share-options">
-    <div class="toggle-option">
-      <input type="checkbox" id="toggleText" checked>
-      <label for="toggleText">Include Text</label>
+<!-- ── Auth ─────────────────────────────────────────────── -->
+<div class="auth-section" id="authSection">
+    <div class="auth-icon">🔑</div>
+    <div class="auth-desc">
+        Đăng nhập Google để cấp quyền tải ảnh lên Google Drive
     </div>
-    <div class="toggle-option">
-      <input type="checkbox" id="toggleDocs" checked>
-      <label for="toggleDocs">Include Documents</label>
+    <!-- shown after FedCM resolves the account (WebView path) -->
+    <button class="google-btn" id="continueBtn" style="display:none" onclick="continueSignIn()">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#fff"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#fff"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#fff"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#fff"/>
+        </svg>
+        <span id="continueBtnLabel">Tiếp tục</span>
+    </button>
+    <!-- fallback: regular browser popup, or when FedCM is unavailable -->
+    <button class="google-btn" id="googleSignInBtn" onclick="signIn()">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#fff"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#fff"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#fff"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#fff"/>
+        </svg>
+        Đăng nhập với Google
+    </button>
+</div>
+
+<!-- ── Debug info (temporary) ───────────────────────────── -->
+<!-- ── Product info box ─────────────────────────────────── -->
+<div class="product-box" id="productBox">
+    <div class="product-thumb-placeholder" id="productThumbPlaceholder">📦</div>
+    <img class="product-thumb" id="productThumb" style="display:none" alt="Ảnh sản phẩm">
+    <div class="product-meta">
+        <div class="product-label">Sản phẩm</div>
+        <div class="product-name" id="productName">—</div>
+        <div class="product-id"   id="productIdDisplay"></div>
     </div>
-  </div>
+</div>
 
-  <div id="docListWrap" style="display:none;">
-    <div class="doc-list-label">Tài liệu</div>
-    <div class="doc-list" id="docList"></div>
-  </div>
+<!-- ── Select images button ──────────────────────────────── -->
+<div class="upload-area" id="uploadArea">
+    <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFilesSelected(this.files)">
+    <button class="select-btn" id="selectBtn" onclick="document.getElementById('fileInput').click()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        Chọn ảnh để tải lên
+    </button>
+</div>
 
-  <button id="shareBtn" class="share-btn"><span class="btn-spinner"></span><span id="shareBtnLabel">Chia sẻ</span></button>
-  <div id="message" class="message"></div>
-  <div id="previewText" class="preview-text" style="display:none;"></div>
+<!-- ── Image grid ────────────────────────────────────────── -->
+<div class="image-grid" id="imageGrid">
+    <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🖼️</div>
+        <p>Chưa có ảnh nào được chọn</p>
+    </div>
+</div>
+
+<div class="bottom-spacer"></div>
+
+<!-- ── Summary bar ───────────────────────────────────────── -->
+<div class="summary-bar hidden" id="summaryBar">
+    <span id="summaryCount">0 ảnh</span>
+    <span id="summaryStats">✅ 0 &nbsp;❌ 0 &nbsp;⏳ 0 &nbsp;🚫 0</span>
+</div>
+
+<!-- ── Action bar ────────────────────────────────────────── -->
+<div class="action-bar hidden" id="actionBar">
+    <button class="start-btn"  id="startBtn"  onclick="startUpload()" disabled>▶ Bắt đầu tải lên</button>
+    <button class="cancel-btn" id="cancelBtn" onclick="cancelAll()" disabled>⛔ Hủy tất cả</button>
 </div>
 
 <script>
-  const shareBtn = document.getElementById('shareBtn');
-  const messageDiv = document.getElementById('message');
+// ═══════════════════════════════════════════════════════════
+//  CONFIG  — all values come from URL params, nothing hardcoded
+// ═══════════════════════════════════════════════════════════
+const MAX_CONCURRENT    = 3;    // parallel uploads
+const MAX_FILE_SIZE     = 10 * 1024 * 1024;  // 10 MB
 
-  if (!navigator.share) {
-    shareBtn.disabled = true;
-    showMessage('Native sharing is not supported on this device/browser', 'error');
-  }
+function formatSize(bytes) {
+    if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return (bytes / 1024).toFixed(0) + ' KB';
+}
 
-  // --- URL param helpers ---
+// ═══════════════════════════════════════════════════════════
+//  PARSE URL PARAMS
+//  Expected: ?google_client_id=...&appsheet_key=...&app_id=...
+//            &product_id=...&folder_id=...&table_name=...&back_url=...
+// ═══════════════════════════════════════════════════════════
+const SESSION_KEY = 'upload_params';
 
-  function getMessageFromQuery() {
-    const params = new URLSearchParams(window.location.search);
-    const m = params.get('m');
-    if (!m) return '';
-    try {
-      return decodeURIComponent(m);
-    } catch {
-      return decodeURIComponent(m.replace(/%(?![0-9A-Fa-f]{2})/g, '%25'));
-    }
-  }
+function parseUrlParams() {
+    const url = window.location.href;
+    const qi  = url.indexOf('?');
 
-  // Parse q param: entries delimited by ',|' (or ', |' / ' , |').
-  // Fields within each entry: Title|DocPath|ImagePath|Type|Note
-  function parseDocuments() {
-    // Use getRawParam to avoid truncation at raw & inside field values,
-    // then decode so %7C → | before splitting.
-    let raw = getRawParam('q');
-    if (!raw) return [];
-    let q;
-    try { q = decodeURIComponent(raw); } catch { q = raw; }
+    if (qi !== -1) {
+        // URL has params — parse and persist to sessionStorage
+        const qs = url.substring(qi);
 
-    // Entries are delimited by '|,' — each entry's last field is terminated by '|',
-    // then ',' separates entries. Fields within each entry: Title|DocPath|ImagePath|Type|Note
-    const rawEntries = q.split(/\|,/);
-    const docs = [];
-    for (let ei = 0; ei < rawEntries.length; ei++) {
-      const entry = rawEntries[ei];
-      const parts     = entry.split('|');
-      const title     = (parts[0] || '').trim();
-      const docPath   = (parts[1] || '').trim();
-      const imagePath = (parts[2] || '').trim();
-      const type      = (parts[3] || '').trim();
-      const note      = (parts[4] || '').trim();
-      if (title || docPath || imagePath || type) {
-        docs.push({ title, docPath, imagePath, type, note });
-      }
-    }
-    return docs;
-  }
-
-  // document and image params contain AppSheet URLs with raw (unencoded) & inside,
-  // so URLSearchParams.get() would truncate at the first &. Use scan-forward instead.
-  // Known top-level params used as stop boundaries.
-  const KNOWN_TOP_PARAMS = ['&document=', '&image=', '&q=', '&v=', '&m='];
-
-  function getRawParam(paramName) {
-    const href = window.location.href;
-    const key = '&' + paramName + '=';
-    const key0 = '?' + paramName + '=';
-    let start = -1;
-    const i0 = href.indexOf(key0);
-    const i1 = href.indexOf(key);
-    if (i0 !== -1) start = i0 + key0.length;
-    else if (i1 !== -1) start = i1 + key.length;
-    if (start === -1) return '';
-
-    const stopKey = '&' + paramName + '=';
-    const stops = KNOWN_TOP_PARAMS
-      .filter(s => s !== stopKey)
-      .map(s => href.indexOf(s, start))
-      .filter(i => i !== -1);
-    const end = stops.length ? Math.min(...stops) : href.length;
-    return href.substring(start, end);
-  }
-
-  // document param: comma-separated full AppSheet document URLs per entry
-  function getDocumentUrls() {
-    const raw = getRawParam('document');
-    if (!raw) return [];
-    return raw.split(',').map(u => u.trim());
-  }
-
-  // image param: comma-separated full AppSheet image URLs per entry
-  function getImageUrls() {
-    const raw = getRawParam('image');
-    if (!raw) return [];
-    return raw.split(',').map(u => u.trim());
-  }
-
-  // --- Fetch helpers ---
-
-  async function fetchAsFile(url, fallbackName) {
-    let fetchUrl = url;
-    try { fetchUrl = decodeURIComponent(url); } catch { /* keep original */ }
-    const response = await fetch(fetchUrl, { mode: 'cors', cache: 'no-cache', credentials: 'omit' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const blob = await response.blob();
-    if (blob.size === 0) throw new Error('Empty file');
-
-    let filename = fallbackName;
-    try {
-      const urlObj = new URL(url);
-      const fileNameParam = urlObj.searchParams.get('fileName');
-      if (fileNameParam) {
-        const parts = fileNameParam.split('/');
-        filename = decodeURIComponent(parts[parts.length - 1]);
-      } else {
-        const pathParts = urlObj.pathname.split('/');
-        const last = pathParts[pathParts.length - 1];
-        if (last) filename = decodeURIComponent(last);
-      }
-    } catch { /* keep fallbackName */ }
-
-    let fileType = blob.type;
-    if (!fileType || fileType === 'application/octet-stream') {
-      const ext = filename.split('.').pop().toLowerCase();
-      const mimeTypes = {
-        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-        gif: 'image/gif', webp: 'image/webp', pdf: 'application/pdf'
-      };
-      fileType = mimeTypes[ext] || 'application/octet-stream';
-    }
-
-    return new File([blob], filename, { type: fileType });
-  }
-
-  // --- Render ---
-
-  function renderPreviewMessage() {
-    const previewEl = document.getElementById('previewText');
-    const text = getMessageFromQuery();
-    if (text) {
-      previewEl.textContent = text;
-      previewEl.style.display = 'block';
-    } else {
-      previewEl.style.display = 'none';
-    }
-  }
-
-  function typeBadgeClass(type) {
-    const t = (type || '').toUpperCase();
-    if (t === 'PDF') return 'pdf';
-    if (t) return 'image';
-    return 'unknown';
-  }
-
-  function typeIcon(type) {
-    const t = (type || '').toUpperCase();
-    if (t === 'PDF') return '📄';
-    return '🖼️';
-  }
-
-  async function renderDocList() {
-    const docs = parseDocuments();
-    const imageUrls = getImageUrls();
-    const documentUrls = getDocumentUrls();
-    const wrap = document.getElementById('docListWrap');
-    const list = document.getElementById('docList');
-
-    if (!docs.length) return;
-    wrap.style.display = 'block';
-
-    for (let i = 0; i < docs.length; i++) {
-      const doc = docs[i];
-      const fullImageUrl = imageUrls[i] || '';
-      const fullDocUrl = documentUrls[i] || '';
-      const isPdf = (doc.type || '').toUpperCase() === 'PDF';
-      const hasBoth = !!(fullDocUrl && fullImageUrl);
-
-      const card = document.createElement('div');
-      card.className = 'doc-card selected';
-
-      // Checkbox
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = true;
-      cb.dataset.index = i;
-      cb.dataset.fmtChoice = isPdf ? 'pdf' : 'image'; // default; overridden by format selector if shown
-      cb.addEventListener('change', () => card.classList.toggle('selected', cb.checked));
-
-      // Thumbnail: set src directly so the browser loads it as an image (avoids CORS
-      // preflight that would be triggered by fetch()). Falls back to icon on error.
-      let thumbEl;
-      if (fullImageUrl) {
-        thumbEl = document.createElement('img');
-        thumbEl.className = 'doc-thumb';
-        thumbEl.alt = doc.title;
-        thumbEl.onerror = () => {
-          const placeholder = document.createElement('div');
-          placeholder.className = `doc-thumb-placeholder ${typeBadgeClass(doc.type)}`;
-          placeholder.textContent = typeIcon(doc.type);
-          thumbEl.replaceWith(placeholder);
-        };
-        thumbEl.src = fullImageUrl;
-      } else {
-        thumbEl = document.createElement('div');
-        thumbEl.className = `doc-thumb-placeholder ${typeBadgeClass(doc.type)}`;
-        thumbEl.textContent = typeIcon(doc.type);
-      }
-
-      // Info section
-      const info = document.createElement('div');
-      info.className = 'doc-info';
-
-      if (doc.type) {
-        const badges = document.createElement('div');
-        badges.className = 'doc-badges';
-        const badge = document.createElement('span');
-        badge.className = `doc-type-badge ${typeBadgeClass(doc.type)}`;
-        badge.textContent = doc.type;
-        badges.appendChild(badge);
-        info.appendChild(badges);
-      }
-
-      const titleEl = document.createElement('div');
-      titleEl.className = 'doc-title';
-      // Show title, or fall back to filename from path
-      const displayTitle = doc.title ||
-        (doc.docPath || doc.imagePath).split('/').pop() || `Tài liệu ${i + 1}`;
-      titleEl.textContent = displayTitle;
-      info.appendChild(titleEl);
-
-      if (doc.note) {
-        const noteEl = document.createElement('div');
-        noteEl.className = 'doc-note';
-        noteEl.textContent = doc.note;
-        info.appendChild(noteEl);
-      }
-
-      // Format selector: shown only for PDF entries that also have an image URL
-      if (hasBoth) {
-        const fmtWrap = document.createElement('div');
-        fmtWrap.className = 'fmt-selector';
-        const options = [
-          { value: 'pdf',   label: 'PDF' },
-          { value: 'image', label: 'Ảnh' },
-          { value: 'both',  label: 'Cả hai' },
+        // Special extractor for params whose value may contain & (e.g. image URLs with query strings).
+        // Reads from the param name up to the next known param name or end of string.
+        const KNOWN_PARAMS = [
+            'google_client_id','appsheet_key','app_id','product_id','folder_id',
+            'image_folder','table_name','col_product_id','col_image',
+            'product_name','product_thumbnail','context_host'
         ];
-        options.forEach(opt => {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          const defaultChoice = isPdf ? 'pdf' : 'image';
-          btn.className = 'fmt-btn' + (opt.value === defaultChoice ? ' active' : '');
-          btn.textContent = opt.label;
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            fmtWrap.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            cb.dataset.fmtChoice = opt.value;
-          });
-          fmtWrap.appendChild(btn);
-        });
-        info.appendChild(fmtWrap);
-      }
+        const getParamFull = (name) => {
+            const re = new RegExp(`[?&]${name}=`);
+            const m  = qs.match(re);
+            if (!m) return '';
+            const idx = m.index;
+            const after = qs.substring(idx + m[0].length);
+            // Find the earliest terminator that is another known param
+            const terminators = KNOWN_PARAMS
+                .filter(p => p !== name)
+                .map(p => after.indexOf(`&${p}=`))
+                .filter(i => i !== -1);
+            const end = terminators.length ? Math.min(...terminators) : after.length;
+            const raw = after.substring(0, end);
+            try { return decodeURIComponent(raw); } catch { return raw; }
+        };
 
-      // Click card body to toggle checkbox
-      card.addEventListener('click', (e) => {
-        if (e.target !== cb && !e.target.classList.contains('fmt-btn')) {
-          cb.checked = !cb.checked;
-          card.classList.toggle('selected', cb.checked);
-        }
-      });
-
-      card.appendChild(cb);
-      card.appendChild(thumbEl);
-      card.appendChild(info);
-      list.appendChild(card);
+        const parsed = {
+            google_client_id : getParamFull('google_client_id'),
+            appsheet_key     : getParamFull('appsheet_key'),
+            app_id           : getParamFull('app_id'),
+            product_id       : getParamFull('product_id'),
+            folder_id        : getParamFull('folder_id'),
+            image_folder     : getParamFull('image_folder'),
+            table_name       : getParamFull('table_name') || 'Attachment',
+            col_product_id   : getParamFull('col_product_id') || 'ProductId',
+            col_image        : getParamFull('col_image') || 'Image',
+            product_name     : getParamFull('product_name'),
+            product_thumbnail: getParamFull('product_thumbnail'),
+            context_host     : getParamFull('context_host')
+        };
+        // Persist so data survives an OAuth redirect if it ever happens
+        try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(parsed)); } catch (_) {}
+        return parsed;
     }
-  }
 
-  // --- Share ---
-
-  function setShareLoading(on, label) {
-    const lbl = document.getElementById('shareBtnLabel');
-    shareBtn.disabled = on;
-    shareBtn.classList.toggle('loading', on);
-    lbl.textContent = on ? (label || 'Đang tải...') : 'Chia sẻ';
-  }
-
-  shareBtn.addEventListener('click', async () => {
+    // No URL params — restore from sessionStorage (e.g. after OAuth redirect)
     try {
-      const includeText = document.getElementById('toggleText').checked;
-      const includeDocs = document.getElementById('toggleDocs').checked;
+        const saved = sessionStorage.getItem(SESSION_KEY);
+        if (saved) return JSON.parse(saved);
+    } catch (_) {}
 
-      if (!includeText && !includeDocs) {
-        showMessage('Please select at least one option to share', 'error');
-        return;
-      }
+    return {};
+}
 
-      const shareData = {};
-      const itemsToShare = [];
+const PARAMS = parseUrlParams();
 
-      const docs = parseDocuments();
-      const checkboxes = document.querySelectorAll('#docList input[type="checkbox"]');
-      const selectedIndices = Array.from(checkboxes)
-        .map((cb, i) => cb.checked ? i : -1)
-        .filter(i => i !== -1);
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let accessToken  = null;
+let tokenClient  = null;
+let allItems     = [];        // all upload items ever added
+let uploadQueue  = [];        // items yet to start
+let activeCount  = 0;
+let folderCache  = new Map(); // key → folder id OR in-flight Promise<id>
+let nextId       = 0;
+let globalCancel = false;
 
-      if (includeText) {
-        const parts = [];
-        const m = getMessageFromQuery();
-        if (m) parts.push(m);
-        for (const i of selectedIndices) {
-          const doc = docs[i];
-          const lines = [];
-          if (doc.title) lines.push(doc.title);
-          if (doc.note) lines.push(doc.note);
-          if (lines.length) parts.push(lines.join('\n'));
-        }
-        if (parts.length) {
-          shareData.text = parts.join('\n\n');
-          itemsToShare.push('text');
-        }
-      }
+// ═══════════════════════════════════════════════════════════
+//  TOKEN PERSISTENCE
+// ═══════════════════════════════════════════════════════════
+const TOKEN_KEY = 'gd_upload_token';
 
-      if (includeDocs) {
-        const documentUrls = getDocumentUrls();
-        const imageUrls = getImageUrls();
+function saveToken(token, expiresIn) {
+    try {
+        localStorage.setItem(TOKEN_KEY, JSON.stringify({
+            token,
+            expiry: Date.now() + (expiresIn - 120) * 1000  // subtract 2 min buffer
+        }));
+    } catch (_) {}
+}
 
-        if (selectedIndices.length > 0) {
-          showMessage(`Đang tải ${selectedIndices.length} tài liệu...`, 'info');
-          setShareLoading(true, `Đang tải ${selectedIndices.length} tài liệu...`);
-          const files = [];
+function loadToken() {
+    try {
+        const raw = localStorage.getItem(TOKEN_KEY);
+        if (!raw) return null;
+        const { token, expiry } = JSON.parse(raw);
+        return Date.now() < expiry ? token : null;
+    } catch (_) { return null; }
+}
 
-          for (const i of selectedIndices) {
-            const doc = docs[i];
-            const isPdf = (doc.type || '').toUpperCase() === 'PDF';
-            const fmtChoice = checkboxes[i].dataset.fmtChoice || (isPdf ? 'pdf' : 'image');
+function clearToken() {
+    try { localStorage.removeItem(TOKEN_KEY); } catch (_) {}
+}
 
-            // Build list of {url, ext} to fetch for this entry
-            const toFetch = [];
-            if (fmtChoice === 'both') {
-              if (documentUrls[i]) toFetch.push({ url: documentUrls[i], ext: '.pdf' });
-              if (imageUrls[i])    toFetch.push({ url: imageUrls[i],    ext: '.jpg' });
-            } else if (fmtChoice === 'image') {
-              const url = imageUrls[i] || documentUrls[i] || '';
-              if (url) toFetch.push({ url, ext: '.jpg' });
-            } else {
-              // pdf (default)
-              const url = documentUrls[i] || imageUrls[i] || '';
-              if (url) toFetch.push({ url, ext: '.pdf' });
-            }
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+    const sub = document.getElementById('headerSubtitle');
+    sub.textContent = PARAMS.product_id
+        ? `Sản phẩm: ${PARAMS.product_id}`
+        : 'Không có thông tin sản phẩm';
 
-            if (!toFetch.length) {
-              console.warn(`No URL available for entry ${i} ("${doc.title}")`);
-              continue;
-            }
+    // Check for a saved valid token first
+    const saved = loadToken();
+    if (saved) {
+        accessToken = saved;
+        document.getElementById('authSection').classList.add('hidden');
+        document.getElementById('uploadArea').style.display = 'block';
+        document.getElementById('actionBar').classList.remove('hidden');
+        showProductBox();
+    }
 
-            for (const { url, ext } of toFetch) {
-              const fallbackName = (doc.title || `doc-${i + 1}`) + ext;
-              try {
-                const file = await fetchAsFile(url, fallbackName);
-                files.push(file);
-              } catch (err) {
-                setShareLoading(false);
-                const label = doc.title || `Tài liệu ${i + 1}`;
-                showMessage(`Lỗi khi tải "${label}": ${err.message}`, 'error');
+    // Always init GIS so we can refresh silently when needed
+    const waitGsi = setInterval(() => {
+        if (typeof google !== 'undefined' && google.accounts) {
+            clearInterval(waitGsi);
+            if (!PARAMS.google_client_id) {
+                if (!saved) {
+                    document.getElementById('authSection').innerHTML =
+                        '<div class="auth-icon">⚠️</div>' +
+                        '<div class="auth-desc">Thiếu tham số <b>google_client_id</b> trong URL.<br>Vui lòng kiểm tra lại cấu hình.</div>';
+                }
                 return;
-              }
             }
-          }
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: PARAMS.google_client_id,
+                scope    : 'https://www.googleapis.com/auth/drive',
+                callback : onTokenReceived
+            });
 
-          if (files.length > 0) {
-            shareData.files = files;
-            itemsToShare.push(`${files.length} tài liệu`);
-          }
+            if (!saved && PARAMS.context_host === 'Device') {
+                initFedCm();
+            }
         }
-      }
+    }, 100);
+});
 
-      if (!shareData.text && !shareData.files) {
-        setShareLoading(false);
-        showMessage('Không có nội dung để chia sẻ', 'error');
-        return;
-      }
+// ═══════════════════════════════════════════════════════════
+//  GOOGLE AUTH
+// ═══════════════════════════════════════════════════════════
+let fedCmHint = null;
 
-      if (navigator.canShare && !navigator.canShare(shareData)) {
-        setShareLoading(false);
-        showMessage('Trình duyệt không thể chia sẻ nội dung này', 'error');
-        return;
-      }
 
-      shareData.title = '';
-      setShareLoading(true, 'Đang chia sẻ...');
-      await navigator.share(shareData);
-      setShareLoading(false);
-      showMessage(`Đã chia sẻ ${itemsToShare.join(' + ')} thành công!`, 'success');
-    } catch (error) {
-      setShareLoading(false);
-      if (error.name === 'AbortError') {
-        showMessage('Đã huỷ chia sẻ', 'info');
-      } else {
-        showMessage('Lỗi: ' + error.message, 'error');
-        console.error('Share error:', error);
-      }
-    }
-  });
-
-  function showMessage(text, type) {
-    messageDiv.textContent = text;
-    messageDiv.className = 'message ' + type;
-    if (type === 'success' || type === 'info') {
-      setTimeout(() => { messageDiv.className = 'message'; }, 3000);
-    }
-  }
-
-  function updateToggleStates() {
-    const toggleText = document.getElementById('toggleText');
-    const toggleDocs = document.getElementById('toggleDocs');
-    const docs = parseDocuments();
-    const hasText = !!getMessageFromQuery() || docs.some(d => d.title || d.note);
-    if (!hasText) {
-      toggleText.disabled = true;
-      toggleText.checked = false;
-    }
-    if (!docs.length) {
-      toggleDocs.disabled = true;
-      toggleDocs.checked = false;
-    }
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    updateToggleStates();
-    renderPreviewMessage();
-
-    const docs = parseDocuments();
-    if (docs.length > 0) {
-      showMessage(`${docs.length} tài liệu sẵn sàng`, 'info');
-    } else if (getMessageFromQuery()) {
-      showMessage('Sẵn sàng chia sẻ văn bản', 'info');
-    } else {
-      showMessage('Thêm nội dung qua tham số URL: ?q=... hoặc ?m=...', 'info');
-    }
-
-    renderDocList().finally(() => {
-      document.getElementById('loadingOverlay').classList.add('hidden');
+function initFedCm() {
+    google.accounts.id.initialize({
+        client_id           : PARAMS.google_client_id,
+        callback            : onFedCmCredential,
+        use_fedcm_for_prompt: true
     });
-  });
+    google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // FedCM unavailable — fall through to normal sign-in button (already visible)
+        }
+    });
+}
+
+function onFedCmCredential(credentialResponse) {
+    // Decode the JWT to get the email — no signature verification needed (we just need the hint)
+    try {
+        const payload = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
+        fedCmHint = payload.email;
+        document.getElementById('continueBtnLabel').textContent = `Tiếp tục với ${fedCmHint}`;
+        document.getElementById('continueBtn').style.display = 'inline-flex';
+        document.getElementById('googleSignInBtn').style.display = 'none';
+    } catch (_) {
+        // Fallback to normal button if decode fails
+    }
+}
+
+function continueSignIn() {
+    if (!tokenClient) { alert('Google Sign-In chưa sẵn sàng, thử lại sau giây lát.'); return; }
+    tokenClient.requestAccessToken({ hint: fedCmHint });
+}
+
+function signIn() {
+    if (!tokenClient) { alert('Google Sign-In chưa sẵn sàng, thử lại sau giây lát.'); return; }
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
+}
+
+function onTokenReceived(resp) {
+    if (resp.error) {
+        if (resp.error !== 'access_denied') {
+            alert('Đăng nhập thất bại: ' + resp.error);
+        }
+        return;
+    }
+    accessToken = resp.access_token;
+    saveToken(resp.access_token, resp.expires_in || 3600);
+    document.getElementById('authSection').classList.add('hidden');
+    document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('actionBar').classList.remove('hidden');
+    showProductBox();
+}
+
+function showProductBox() {
+    const { product_name, product_id, product_thumbnail } = PARAMS;
+    if (!product_name && !product_id) return;
+
+    document.getElementById('productBox').classList.add('visible');
+    document.getElementById('productName').textContent = product_name || product_id;
+    document.getElementById('productIdDisplay').textContent = product_name ? `ID: ${product_id}` : '';
+
+    if (product_thumbnail) {
+        const img = document.getElementById('productThumb');
+        img.src = product_thumbnail;
+        img.style.display = 'block';
+        document.getElementById('productThumbPlaceholder').style.display = 'none';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GOOGLE DRIVE HELPERS
+// ═══════════════════════════════════════════════════════════
+async function driveGet(path, signal) {
+    const r = await fetch(`https://www.googleapis.com${path}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal
+    });
+    if (!r.ok) {
+        if (r.status === 401) { clearToken(); accessToken = null; }
+        throw new Error(`Drive error ${r.status}: ${await r.text()}`);
+    }
+    return r.json();
+}
+
+async function drivePost(path, body, signal) {
+    const r = await fetch(`https://www.googleapis.com${path}`, {
+        method : 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body   : JSON.stringify(body),
+        signal
+    });
+    if (!r.ok) throw new Error(`Drive error ${r.status}: ${await r.text()}`);
+    return r.json();
+}
+
+function getOrCreateFolder(parentId, name, signal) {
+    const key = `${parentId}::${name}`;
+
+    // Return cached id or the already-in-flight promise — either way only one API call fires
+    if (folderCache.has(key)) return Promise.resolve(folderCache.get(key));
+
+    const promise = (async () => {
+        const q = encodeURIComponent(
+            `'${parentId}' in parents and name='${name}' ` +
+            `and mimeType='application/vnd.google-apps.folder' and trashed=false`
+        );
+        // orderBy=createdTime ensures we always pick the oldest folder if duplicates exist
+        const search = `/drive/v3/files?q=${q}&orderBy=createdTime&fields=files(id)`;
+        const res = await driveGet(search, signal);
+        let id;
+        if (res.files && res.files.length > 0) {
+            id = res.files[0].id;
+        } else {
+            await drivePost('/drive/v3/files', {
+                name,
+                mimeType: 'application/vnd.google-apps.folder',
+                parents : [parentId]
+            }, signal);
+            // Re-query after creation: if two users created the folder concurrently,
+            // both will now find two results and consistently pick the same oldest one.
+            const res2 = await driveGet(search, signal);
+            id = (res2.files && res2.files.length > 0) ? res2.files[0].id : null;
+            if (!id) throw new Error(`Folder "${name}" created but not found`);
+        }
+        // Replace the promise with the resolved id so future calls skip the await
+        folderCache.set(key, id);
+        return id;
+    })();
+
+    // Store the promise immediately so concurrent callers await the same one
+    folderCache.set(key, promise);
+    return promise;
+}
+
+// Returns the yyyy/mm/dd subfolder ID under the root folder_id
+async function getDayFolderId(signal) {
+    const now  = new Date();
+    const yyyy = String(now.getFullYear());
+    const mm   = String(now.getMonth() + 1).padStart(2, '0');
+    const dd   = String(now.getDate()).padStart(2, '0');
+
+    const root    = PARAMS.folder_id;
+    const yearId  = await getOrCreateFolder(root,   yyyy, signal);
+    if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+    const monthId = await getOrCreateFolder(yearId, mm,   signal);
+    if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+    return getOrCreateFolder(monthId, dd, signal);
+}
+
+// Upload file using multipart upload; calls onProgress(0..1)
+function uploadToDrive(file, uploadedName, parentId, signal, onProgress) {
+    return new Promise((resolve, reject) => {
+        const metadata = JSON.stringify({ name: uploadedName, parents: [parentId] });
+        const boundary = 'upload_boundary_x7z';
+        const delim    = `\r\n--${boundary}\r\n`;
+        const close    = `\r\n--${boundary}--`;
+
+        const enc        = new TextEncoder();
+        const metaPart   = enc.encode(`--${boundary}\r\nContent-Type: application/json\r\n\r\n${metadata}`);
+        const fileHeader = enc.encode(`${delim}Content-Type: ${file.type || 'image/jpeg'}\r\n\r\n`);
+        const closePart  = enc.encode(close);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const fileBytes = new Uint8Array(e.target.result);
+            const body = new Uint8Array(
+                metaPart.byteLength + fileHeader.byteLength + fileBytes.byteLength + closePart.byteLength
+            );
+            let off = 0;
+            body.set(metaPart,   off); off += metaPart.byteLength;
+            body.set(fileHeader, off); off += fileHeader.byteLength;
+            body.set(fileBytes,  off); off += fileBytes.byteLength;
+            body.set(closePart,  off);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST',
+                'https://www.googleapis.com/upload/drive/v3/files' +
+                '?uploadType=multipart&fields=id,webViewLink,webContentLink'
+            );
+            xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+            xhr.setRequestHeader('Content-Type', `multipart/related; boundary=${boundary}`);
+
+            xhr.upload.onprogress = (ev) => {
+                if (ev.lengthComputable) onProgress(ev.loaded / ev.total);
+            };
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    reject(new Error(`Upload thất bại: ${xhr.status}`));
+                }
+            };
+            xhr.onerror   = () => reject(new Error('Lỗi mạng'));
+            xhr.onabort   = () => reject(new DOMException('Cancelled', 'AbortError'));
+            if (signal) signal.addEventListener('abort', () => xhr.abort());
+            xhr.send(body);
+        };
+        reader.onerror = () => reject(new Error('Không đọc được file'));
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// Make the uploaded file readable by anyone (public read access)
+async function makePublic(fileId) {
+    try {
+        await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+            method : 'POST',
+            headers: {
+                Authorization : `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ role: 'reader', type: 'anyone' })
+        });
+    } catch (_) { /* non-critical */ }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  APPSHEET API
+// ═══════════════════════════════════════════════════════════
+async function addRecord(driveFileId, uploadedName) {
+    const { appsheet_key, app_id, product_id, table_name, image_folder } = PARAMS;
+
+    if (!appsheet_key || !app_id) {
+        console.warn('Missing appsheet_key or app_id — skipping record insert.', { appsheet_key, app_id });
+        return;
+    }
+
+    // Image column expects a relative path: "<image_folder>/yyyy/mm/dd/<filename>"
+    const now  = new Date();
+    const yyyy = String(now.getFullYear());
+    const mm   = String(now.getMonth() + 1).padStart(2, '0');
+    const dd   = String(now.getDate()).padStart(2, '0');
+    const datePath  = `${yyyy}/${mm}/${dd}`;
+    const imagePath = image_folder
+        ? `${image_folder}/${datePath}/${uploadedName}`
+        : `${datePath}/${uploadedName}`;
+
+    const row = {
+        [PARAMS.col_product_id] : product_id,
+        [PARAMS.col_image]      : imagePath
+    };
+
+    const url  = `https://api.appsheet.com/api/v2/apps/${app_id}/tables/${encodeURIComponent(table_name)}/Action`;
+    const body = JSON.stringify({
+        Action    : 'Add',
+        Properties: { Locale: 'en-US', Timezone: 'SE Asia Standard Time' },
+        Rows      : [row]
+    });
+
+    console.log('[addRecord] POST', url);
+    console.log('[addRecord] Row:', row);
+
+    const r = await fetch(url, {
+        method : 'POST',
+        headers: {
+            'ApplicationAccessKey': appsheet_key,
+            'Content-Type'        : 'application/json'
+        },
+        body
+    });
+
+    const text = await r.text();
+    console.log('[addRecord] Response', r.status, text);
+
+    if (!r.ok) throw new Error(`Record API error ${r.status}: ${text}`);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FILE SELECTION
+// ═══════════════════════════════════════════════════════════
+function handleFilesSelected(files) {
+    if (!files || files.length === 0) return;
+    globalCancel = false;
+    document.getElementById('emptyState')?.remove();
+    document.getElementById('summaryBar').classList.remove('hidden');
+
+    Array.from(files).forEach(file => {
+        const item = {
+            id        : nextId++,
+            file,
+            status    : 'pending',
+            controller: null,
+            element   : null
+        };
+        allItems.push(item);
+
+        if (file.size > MAX_FILE_SIZE) {
+            item.status = 'oversized';
+            renderCard(item);
+            setStatus(item, 'oversized');
+        } else {
+            uploadQueue.push(item);
+            renderCard(item);
+        }
+    });
+
+    document.getElementById('fileInput').value = '';
+    document.getElementById('startBtn').disabled = false;
+    updateSummary();
+}
+
+function startUpload() {
+    if (uploadQueue.length === 0 && activeCount === 0) return;
+    document.getElementById('startBtn').disabled  = true;
+    document.getElementById('cancelBtn').disabled = false;
+    globalCancel = false;
+    pumpQueue();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UPLOAD QUEUE
+// ═══════════════════════════════════════════════════════════
+function pumpQueue() {
+    while (uploadQueue.length > 0 && activeCount < MAX_CONCURRENT && !globalCancel) {
+        const item = uploadQueue.shift();
+        if (item.status === 'cancelled') { pumpQueue(); continue; }
+        activeCount++;
+        runUpload(item).finally(() => { activeCount--; pumpQueue(); updateSummary(); });
+    }
+    updateSummary();
+}
+
+function buildUploadedName(file) {
+    const now  = new Date();
+    const p    = n => String(n).padStart(2, '0');
+    const ts   = `${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}` +
+                 `_${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`;
+    const dot  = file.name.lastIndexOf('.');
+    const base = dot > -1 ? file.name.slice(0, dot) : file.name;
+    const ext  = dot > -1 ? file.name.slice(dot)    : '';
+    return `${base}-${ts}${ext}`;
+}
+
+async function runUpload(item) {
+    if (globalCancel || item.status === 'cancelled') { setStatus(item, 'cancelled'); return; }
+
+    item.controller = new AbortController();
+    const { signal } = item.controller;
+
+    setStatus(item, 'uploading');
+    try {
+        // 1. Resolve yyyy/mm/dd folder in Drive
+        const dayFolderId  = await getDayFolderId(signal);
+        const uploadedName = buildUploadedName(item.file);
+
+        // 2. Upload to Drive
+        const driveFile = await uploadToDrive(
+            item.file, uploadedName, dayFolderId, signal,
+            pct => setProgress(item, pct)
+        );
+
+        // 3. Make file publicly accessible
+        await makePublic(driveFile.id);
+
+        // 4. Add record
+        await addRecord(driveFile.id, uploadedName);
+
+        setStatus(item, 'success');
+    } catch (e) {
+        if (e.name === 'AbortError') {
+            setStatus(item, 'cancelled');
+        } else {
+            console.error('[upload]', e);
+            setStatus(item, 'failed', e.message);
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI — cards
+// ═══════════════════════════════════════════════════════════
+const ICON = {
+    pending  : '⏳',
+    uploading: '⬆️',
+    success  : '✅',
+    failed   : '❌',
+    cancelled: '🚫',
+    oversized: '⚠️'
+};
+const LABEL = {
+    pending  : 'Chờ tải lên',
+    uploading: 'Đang tải...',
+    success  : 'Thành công',
+    failed   : 'Thất bại',
+    cancelled: 'Đã hủy',
+    oversized: 'Ảnh quá lớn (tối đa 10 MB)'
+};
+
+function renderCard(item) {
+    const card = document.createElement('div');
+    card.className = 'image-card card-pending';
+    card.id = `card-${item.id}`;
+
+    const thumb = document.createElement('img');
+    const objUrl = URL.createObjectURL(item.file);
+    thumb.src = objUrl;
+    thumb.addEventListener('load', () => URL.revokeObjectURL(objUrl), { once: true });
+
+    const info = document.createElement('div');
+    info.className = 'card-info';
+
+    const name = document.createElement('div');
+    name.className = 'card-name';
+    name.title = item.file.name;
+    name.textContent = item.file.name;
+
+    const row = document.createElement('div');
+    row.className = 'card-status-row';
+
+    const icon = document.createElement('span');
+    icon.className = 'status-icon';
+    icon.id = `icon-${item.id}`;
+    icon.textContent = ICON.pending;
+
+    const text = document.createElement('span');
+    text.className = 'status-text';
+    text.id = `text-${item.id}`;
+    text.textContent = LABEL.pending;
+
+    row.append(icon, text);
+
+    const bar = document.createElement('div');
+    bar.className = 'progress-bar';
+    const fill = document.createElement('div');
+    fill.className = 'progress-fill';
+    fill.id = `prog-${item.id}`;
+    bar.appendChild(fill);
+
+    info.append(name, row, bar);
+    card.append(thumb, info);
+    document.getElementById('imageGrid').appendChild(card);
+    item.element = card;
+}
+
+function setStatus(item, status, detail) {
+    item.status = status;
+    const card = document.getElementById(`card-${item.id}`);
+    if (!card) return;
+    card.className = `image-card card-${status}`;
+    document.getElementById(`icon-${item.id}`).textContent = ICON[status];
+    const label = status === 'oversized'
+        ? `Quá lớn: ${formatSize(item.file.size)} (tối đa 10 MB)`
+        : detail
+            ? `${LABEL[status]}: ${String(detail).substring(0, 45)}`
+            : LABEL[status];
+    document.getElementById(`text-${item.id}`).textContent = label;
+    const prog = document.getElementById(`prog-${item.id}`);
+    prog.style.width = status === 'success' ? '100%'
+                     : status === 'uploading' ? prog.style.width
+                     : '0%';
+}
+
+function setProgress(item, pct) {
+    document.getElementById(`prog-${item.id}`).style.width = `${Math.round(pct * 100)}%`;
+    document.getElementById(`text-${item.id}`).textContent = `Đang tải... ${Math.round(pct * 100)}%`;
+}
+
+function updateSummary() {
+    const grid      = document.getElementById('imageGrid');
+    const success   = grid.querySelectorAll('.card-success').length;
+    const failed    = grid.querySelectorAll('.card-failed').length;
+    const cancelled = grid.querySelectorAll('.card-cancelled').length;
+    const pending   = grid.querySelectorAll('.card-pending, .card-uploading').length;
+    const total     = allItems.length;
+
+    document.getElementById('summaryCount').textContent = `${total} ảnh`;
+    document.getElementById('summaryStats').textContent =
+        `✅ ${success}  ❌ ${failed}  ⏳ ${pending}  🚫 ${cancelled}`;
+
+    document.getElementById('cancelBtn').disabled = pending === 0;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════════════════════════════════
+function cancelAll() {
+    globalCancel = true;
+    // Cancel queued items
+    uploadQueue.forEach(item => setStatus(item, 'cancelled'));
+    uploadQueue.length = 0;
+    // Abort in-progress items
+    allItems.forEach(item => {
+        if (item.status === 'uploading' && item.controller) {
+            item.controller.abort();
+        }
+    });
+    document.getElementById('cancelBtn').disabled = true;
+    document.getElementById('startBtn').disabled  = true;
+    updateSummary();
+}
+
 </script>
 </body>
 </html>
