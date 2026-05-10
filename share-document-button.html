@@ -210,6 +210,33 @@
       accent-color: #c9302c;
     }
 
+    .fmt-selector {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .fmt-btn {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      color: #666;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .fmt-btn:hover { background: #f3f3f3; }
+
+    .fmt-btn.active {
+      background: #c9302c;
+      border-color: #c9302c;
+      color: white;
+    }
+
     .doc-thumb {
       width: 52px;
       height: 52px;
@@ -506,6 +533,7 @@
   async function renderDocList() {
     const docs = parseDocuments();
     const imageUrls = getImageUrls();
+    const documentUrls = getDocumentUrls();
     const wrap = document.getElementById('docListWrap');
     const list = document.getElementById('docList');
 
@@ -515,6 +543,9 @@
     for (let i = 0; i < docs.length; i++) {
       const doc = docs[i];
       const fullImageUrl = imageUrls[i] || '';
+      const fullDocUrl = documentUrls[i] || '';
+      const isPdf = (doc.type || '').toUpperCase() === 'PDF';
+      const hasBoth = !!(fullDocUrl && fullImageUrl);
 
       const card = document.createElement('div');
       card.className = 'doc-card selected';
@@ -524,6 +555,7 @@
       cb.type = 'checkbox';
       cb.checked = true;
       cb.dataset.index = i;
+      cb.dataset.fmtChoice = isPdf ? 'pdf' : 'image'; // default; overridden by format selector if shown
       cb.addEventListener('change', () => card.classList.toggle('selected', cb.checked));
 
       // Thumbnail: set src directly so the browser loads it as an image (avoids CORS
@@ -575,9 +607,35 @@
         info.appendChild(noteEl);
       }
 
+      // Format selector: shown only for PDF entries that also have an image URL
+      if (hasBoth) {
+        const fmtWrap = document.createElement('div');
+        fmtWrap.className = 'fmt-selector';
+        const options = [
+          { value: 'pdf',   label: 'PDF' },
+          { value: 'image', label: 'Ảnh' },
+          { value: 'both',  label: 'Cả hai' },
+        ];
+        options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          const defaultChoice = isPdf ? 'pdf' : 'image';
+          btn.className = 'fmt-btn' + (opt.value === defaultChoice ? ' active' : '');
+          btn.textContent = opt.label;
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fmtWrap.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            cb.dataset.fmtChoice = opt.value;
+          });
+          fmtWrap.appendChild(btn);
+        });
+        info.appendChild(fmtWrap);
+      }
+
       // Click card body to toggle checkbox
       card.addEventListener('click', (e) => {
-        if (e.target !== cb) {
+        if (e.target !== cb && !e.target.classList.contains('fmt-btn')) {
           cb.checked = !cb.checked;
           card.classList.toggle('selected', cb.checked);
         }
@@ -647,28 +705,38 @@
           for (const i of selectedIndices) {
             const doc = docs[i];
             const isPdf = (doc.type || '').toUpperCase() === 'PDF';
+            const fmtChoice = checkboxes[i].dataset.fmtChoice || (isPdf ? 'pdf' : 'image');
 
-            // Use full URL from document/image params based on type
-            const fullUrl = isPdf
-              ? (documentUrls[i] || imageUrls[i] || '')
-              : (imageUrls[i] || documentUrls[i] || '');
+            // Build list of {url, ext} to fetch for this entry
+            const toFetch = [];
+            if (fmtChoice === 'both') {
+              if (documentUrls[i]) toFetch.push({ url: documentUrls[i], ext: '.pdf' });
+              if (imageUrls[i])    toFetch.push({ url: imageUrls[i],    ext: '.jpg' });
+            } else if (fmtChoice === 'image') {
+              const url = imageUrls[i] || documentUrls[i] || '';
+              if (url) toFetch.push({ url, ext: '.jpg' });
+            } else {
+              // pdf (default)
+              const url = documentUrls[i] || imageUrls[i] || '';
+              if (url) toFetch.push({ url, ext: '.pdf' });
+            }
 
-            if (!fullUrl) {
+            if (!toFetch.length) {
               console.warn(`No URL available for entry ${i} ("${doc.title}")`);
               continue;
             }
 
-            const fallbackName = (doc.title || `doc-${i + 1}`) +
-              (isPdf ? '.pdf' : '.jpg');
-
-            try {
-              const file = await fetchAsFile(fullUrl, fallbackName);
-              files.push(file);
-            } catch (err) {
-              setShareLoading(false);
-              const label = doc.title || `Tài liệu ${i + 1}`;
-              showMessage(`Lỗi khi tải "${label}": ${err.message}`, 'error');
-              return;
+            for (const { url, ext } of toFetch) {
+              const fallbackName = (doc.title || `doc-${i + 1}`) + ext;
+              try {
+                const file = await fetchAsFile(url, fallbackName);
+                files.push(file);
+              } catch (err) {
+                setShareLoading(false);
+                const label = doc.title || `Tài liệu ${i + 1}`;
+                showMessage(`Lỗi khi tải "${label}": ${err.message}`, 'error');
+                return;
+              }
             }
           }
 
