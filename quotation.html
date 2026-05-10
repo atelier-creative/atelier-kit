@@ -604,22 +604,19 @@ async function captureAndShare() {
         const pageH  = page.scrollHeight;
         const canvas = await html2canvas(page, {
             backgroundColor: '#131210',
-            scale          : 5,
+            scale          : 4,
             useCORS        : false,
             allowTaint     : true,
             logging        : false,
             width          : pageW,
             height         : pageH,
-            windowWidth    : pageW,
+            windowWidth    : window.innerWidth,
             windowHeight   : pageH,
             onclone: (doc) => {
-                const b = doc.body;
-                b.style.padding = '0';
-                b.style.margin  = '0';
                 const p = doc.getElementById('page');
                 p.style.border       = 'none';
                 p.style.borderRadius = '0';
-                p.style.margin       = '0';
+                p.style.boxShadow    = 'none';
             }
         });
 
