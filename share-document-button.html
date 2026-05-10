@@ -407,14 +407,12 @@
     let q;
     try { q = decodeURIComponent(raw); } catch { q = raw; }
 
-    // Entries are delimited by ',|' (also ', |' or ' , |').
-    // The split consumes the '|', but that '|' is actually the leading field
-    // separator for the next entry (empty title slot) — so prepend it back.
-    // Fields within each entry: Title|DocPath|ImagePath|Type|Note
-    const rawEntries = q.split(/\s*,\s*\|/);
+    // Entries are delimited by '|,' — each entry's last field is terminated by '|',
+    // then ',' separates entries. Fields within each entry: Title|DocPath|ImagePath|Type|Note
+    const rawEntries = q.split(/\|,/);
     const docs = [];
     for (let ei = 0; ei < rawEntries.length; ei++) {
-      const entry = ei === 0 ? rawEntries[ei] : '|' + rawEntries[ei];
+      const entry = rawEntries[ei];
       const parts     = entry.split('|');
       const title     = (parts[0] || '').trim();
       const docPath   = (parts[1] || '').trim();
@@ -748,11 +746,13 @@
       }
 
       if (!shareData.text && !shareData.files) {
+        setShareLoading(false);
         showMessage('Không có nội dung để chia sẻ', 'error');
         return;
       }
 
       if (navigator.canShare && !navigator.canShare(shareData)) {
+        setShareLoading(false);
         showMessage('Trình duyệt không thể chia sẻ nội dung này', 'error');
         return;
       }
