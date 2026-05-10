@@ -600,20 +600,23 @@ async function captureAndShare() {
     btn.textContent = 'Đang tạo ảnh...';
     try {
         const page   = document.getElementById('page');
-        const pageW  = page.offsetWidth;
         const canvas = await html2canvas(page, {
             backgroundColor: '#131210',
             scale          : 3,
             useCORS        : false,
             allowTaint     : true,
             logging        : false,
-            width          : pageW,
-            windowWidth    : pageW,
+            width          : 600,
+            windowWidth    : 600,
             onclone: (doc) => {
-                doc.body.style.padding  = '0';
-                doc.body.style.margin   = '0';
-                doc.body.style.minWidth = 'unset';
-                doc.getElementById('page').style.border = 'none';
+                const b = doc.body;
+                b.style.padding = '0';
+                b.style.margin  = '0';
+                const p = doc.getElementById('page');
+                p.style.width    = '600px';
+                p.style.maxWidth = '600px';
+                p.style.border   = 'none';
+                p.style.borderRadius = '0';
             }
         });
 
