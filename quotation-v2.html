@@ -514,6 +514,9 @@
     }
   </style>
   <style>
+    /* Force Arial on labels — font-weight:800 can trigger fallback fonts */
+    .label { font-family: Arial, Helvetica, sans-serif !important; }
+
     /* Share bar & loading overlay — new elements only */
     .share-bar {
       position: fixed;
