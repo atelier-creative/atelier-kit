@@ -921,9 +921,13 @@ async function populate() {
         document.getElementById('qrCard').style.display = 'flex';
     }
 
-    // Customer info
+    // Customer info — parse directly (address may contain commas, skip comma-split)
     if (P.customer_info) {
-        const c = parsePipeList(P.customer_info)[0] || {};
+        const c = {};
+        P.customer_info.split('|').forEach(pair => {
+            const ci = pair.indexOf(':');
+            if (ci > 0) c[pair.substring(0, ci).trim()] = pair.substring(ci + 1).trim();
+        });
         if (c.customer_name) {
             const el = document.getElementById('customerName');
             el.textContent = c.customer_name;
@@ -1010,7 +1014,7 @@ async function captureAndShare() {
         const pageH = page.scrollHeight;
         const canvas = await html2canvas(page, {
             backgroundColor: '#ffffff',
-            scale          : 2,
+            scale          : 4,
             useCORS        : false,
             allowTaint     : true,
             logging        : false,
