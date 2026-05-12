@@ -791,7 +791,8 @@ const KNOWN_PARAMS = [
     'items_info','items_image','discount_info','sub_total_info',
     'sub_total','grand_total',
     'customer_info',
-    'quote_date'
+    'quote_date',
+    'scale'
 ];
 
 function parseParams() {
@@ -1004,7 +1005,7 @@ async function captureAndShare() {
         const pageH = page.scrollHeight;
         const canvas = await html2canvas(page, {
             backgroundColor: '#ffffff',
-            scale          : 4,
+            scale          : parseInt(P.scale) || 4,
             useCORS        : false,
             allowTaint     : true,
             logging        : false,
