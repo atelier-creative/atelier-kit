@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Báo giá</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Allura&display=swap');
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #e8e4d9;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1e2a24;
+      padding: 24px;
+      padding-bottom: 88px;
+    }
+
+    .quote-page {
+      width: 1080px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #d6d1c5;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+    }
+
+    .dark {
+      background: linear-gradient(135deg, #0e2a1d, #183b2b);
+      color: #f3d47b;
+    }
+
+    .header {
+      height: 155px;
+      padding: 30px 42px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      gap: 26px;
+      align-items: center;
+    }
+
+    .logo-box {
+      width: 92px;
+      height: 92px;
+      border: 4px solid #e8c765;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 54px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .brand h1 {
+      font-size: 42px;
+      letter-spacing: 0.3px;
+      margin-bottom: 8px;
+      color: #e7c76a;
+    }
+
+    .brand p {
+      color: #f2dfa2;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .quote-meta {
+      text-align: right;
+      font-size: 18px;
+      width: max-content;
+      margin-left: auto;
+      margin-right: 0;
+      align-self: flex-start;
+    }
+
+    .quote-meta h2 {
+      font-size: 31px;
+      color: #f0ce70;
+      margin-bottom: 4px;
+    }
+
+    .content {
+      padding: 22px 28px 0;
+    }
+
+    .top-info {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr 260px;
+      gap: 30px;
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid #ddd8cc;
+    }
+
+    .contact-list,
+    .bank-info {
+      padding-right: 20px;
+    }
+
+    .contact-item {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+      font-size: 17px;
+      line-height: 1.45;
+      align-items: flex-start;
+    }
+
+    .contact-icon {
+      width: 25px;
+      height: 25px;
+      stroke: #26352d;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .icon {
+      font-size: 27px;
+      color: #173625;
+      text-align: center;
+    }
+
+    .label {
+      font-weight: 800;
+      color: #2f3a34;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .divider-left {
+      border-left: 1px solid #ded9cd;
+      padding-left: 34px;
+    }
+
+    .bank-title {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 16px;
+      align-items: flex-start;
+      margin: 0 0 20px;
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .bank-icon {
+      width: 25px;
+      height: 25px;
+      stroke: #26352d;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .bank-title .label {
+      white-space: nowrap;
+    }
+
+    .bank-text {
+      line-height: 1.45;
+      font-size: 16px;
+      white-space: nowrap;
+    }
+
+    .qr-card {
+      border: 1px solid #e1dccf;
+      border-radius: 8px;
+      height: 270px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .qr-header {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 14px;
+      font-weight: 800;
+      color: #254735;
+      padding: 0 8px;
+    }
+
+    .qr {
+      width: 150px;
+      height: 150px;
+      background:
+        linear-gradient(90deg, #000 10px, transparent 10px) 0 0 / 20px 20px,
+        linear-gradient(#000 10px, transparent 10px) 0 0 / 20px 20px,
+        #fff;
+      border: 10px solid #fff;
+      outline: 3px solid #111;
+    }
+
+    .napas {
+      font-size: 20px;
+      font-weight: 800;
+      color: #214c86;
+      font-style: italic;
+      margin-top: 6px;
+    }
+
+    .cards-row {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 34px;
+      margin-top: 26px;
+    }
+
+    .box {
+      border: 1.5px solid #8d8d87;
+      border-radius: 8px;
+      padding: 20px 22px;
+      min-height: 238px;
+    }
+
+    .box h3 {
+      font-size: 18px;
+      margin-bottom: 22px;
+      color: #2d3831;
+      text-transform: uppercase;
+    }
+
+    .form-row,
+    .terms-row {
+      display: grid;
+      grid-template-columns: 26px 120px 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 16px;
+    }
+
+    .customer-icon,
+    .terms-icon {
+      width: 22px;
+      height: 22px;
+      stroke: #26352d;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
+    }
+
+    .form-row .line {
+      height: 1px;
+      background: #9e9e99;
+    }
+
+    .terms-row {
+      grid-template-columns: 30px 190px 12px 1fr;
+    }
+
+    .terms-row span:last-child {
+      color: #344037;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 16px;
+    }
+
+    th {
+      background: #173625;
+      color: #ffffff;
+      text-transform: uppercase;
+      padding: 14px 8px;
+      border: 1px solid #ced4ca;
+      font-size: 17px;
+    }
+
+    td {
+      border: 1px solid #e3e0d8;
+      padding: 10px 10px;
+      vertical-align: middle;
+      background: #fff;
+    }
+
+    .col-stt { width: 70px; text-align: center; }
+    .col-img { width: 170px; text-align: center; }
+    .col-name { width: 310px; }
+    .col-price, .col-qty, .col-total { text-align: center; }
+
+    .product-img {
+      width: 116px;
+      height: 106px;
+      object-fit: cover;
+      background: #3b2d1d;
+      border-radius: 2px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #e8d7b1;
+      font-size: 46px;
+    }
+
+    .product-name {
+      font-weight: 800;
+      font-size: 17px;
+      margin-bottom: 7px;
+    }
+
+    .product-detail {
+      line-height: 1.65;
+    }
+
+    .bottom-section {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 28px;
+      margin-top: 12px;
+      margin-bottom: 22px;
+    }
+
+    .thank-card {
+      border-radius: 24px;
+      border: none;
+      padding: 20px 18px 22px;
+      min-height: 155px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .thank-title {
+      font-family: "Brush Script MT", "Segoe Script", cursive;
+      font-size: 34px;
+      color: #6f6f65;
+      margin-bottom: 14px;
+    }
+
+    .thank-card p {
+      font-size: 16px;
+      line-height: 1.6;
+      text-align: justify;
+    }
+
+    .summary {
+      border: 1px solid #d9d5cb;
+      border-radius: 7px;
+      overflow: hidden;
+      align-self: start;
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      border-bottom: 1px solid #ded9cf;
+      min-height: 45px;
+      align-items: center;
+    }
+
+    .summary-row:last-child { border-bottom: none; }
+
+    .summary-label {
+      text-align: left;
+      padding-left: 28px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #4a4a43;
+    }
+
+    .summary-value {
+      padding-right: 28px;
+      text-align: right;
+      font-weight: 800;
+      font-size: 18px;
+      white-space: nowrap;
+    }
+
+    .discount {
+      color: #27833d;
+    }
+
+    .pay-row {
+      background: #173625;
+      color: #f0cf70;
+      min-height: 62px;
+    }
+
+    .pay-row .summary-label {
+      color: #f0cf70;
+      font-size: 20px;
+    }
+
+    .pay-row .summary-value {
+      color: #f0cf70;
+      font-size: 31px;
+    }
+
+    .footer {
+      padding: 22px 28px 26px;
+    }
+
+    .benefits {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .benefit {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 14px;
+      align-items: center;
+      border-right: 1px solid rgba(240, 207, 112, 0.45);
+      padding-right: 12px;
+    }
+
+    .benefit:last-child {
+      border-right: none;
+    }
+
+    .benefit-icon {
+      width: 54px;
+      height: 54px;
+      border: 2px solid #e3c160;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e3c160;
+      flex: 0 0 54px;
+    }
+
+    .footer-icon {
+      width: 29px;
+      height: 29px;
+      stroke: #e3c160;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
+    }
+
+    .benefit h4 {
+      color: #e9cb73;
+      font-size: 13px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .benefit p {
+      color: #ffffff;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .tagline-wrap {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: #e9cb73;
+    }
+
+    .tagline-wrap::before,
+    .tagline-wrap::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #e9cb73;
+      opacity: 0.85;
+    }
+
+    .tagline {
+      font-family: "Allura", "Segoe Script", "Brush Script MT", cursive;
+      font-style: normal;
+      font-weight: 400;
+      color: #ffffff;
+      font-size: 28px;
+      letter-spacing: 0.2px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .quote-page {
+        width: 100%;
+        box-shadow: none;
+        border-radius: 0;
+      }
+    }
+  </style>
+  <style>
+    /* Share bar & loading overlay — new elements only */
+    .share-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 12px 16px;
+      background: #0e2a1d;
+      border-top: 1px solid rgba(232,199,101,.25);
+      z-index: 10;
+    }
+    .share-btn {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      margin: 0 auto;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #173625;
+      color: #f0ce70;
+      border: 1px solid #e8c765;
+      border-radius: 12px;
+      padding: 13px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .5px;
+      transition: opacity .2s;
+    }
+    .share-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: #0e2a1d;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 100;
+    }
+    .loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(232,199,101,.2);
+      border-top-color: #e8c765;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: rgba(255,255,255,.4); letter-spacing: .5px; }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Đang tải...</div>
+</div>
+
+<main class="quote-page" id="quotePage">
+  <section class="header dark">
+    <div class="brand">
+      <div class="logo-box" id="logoBox">
+        <img id="logoImg" alt="Logo" style="display:none; width:100%; height:100%; object-fit:contain; border-radius:14px;">
+        <span id="logoPlaceholder"></span>
+      </div>
+      <div>
+        <h1 id="storeName"></h1>
+      </div>
+    </div>
+    <div class="quote-meta">
+      <h2>BÁO GIÁ</h2>
+      <div id="quoteDate"></div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="top-info">
+      <div class="contact-list">
+        <div class="contact-item" id="addressItem">
+          <svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <div>
+            <div class="label">Địa chỉ</div>
+            <div id="storeAddress"></div>
+          </div>
+        </div>
+        <div class="contact-item" id="phoneItem">
+          <svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.91.33 1.8.63 2.65a2 2 0 0 1-.45 2.11L8.09 9.69a16 16 0 0 0 6.22 6.22l1.21-1.21a2 2 0 0 1 2.11-.45c.85.3 1.74.51 2.65.63A2 2 0 0 1 22 16.92Z"/></svg>
+          <div>
+            <div class="label">Số điện thoại</div>
+            <div id="storePhone"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bank-info divider-left">
+        <div class="bank-title">
+          <svg class="bank-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 21h18"/>
+            <path d="M5 21V10"/>
+            <path d="M9 21V10"/>
+            <path d="M15 21V10"/>
+            <path d="M19 21V10"/>
+            <path d="M2 10h20"/>
+            <path d="M12 3 3 8h18Z"/>
+          </svg>
+          <div>
+            <div class="label">Thông tin tài khoản</div>
+            <div class="bank-text">
+              <strong id="bankName"></strong><br>
+              <span id="bankAccount"></span><br>
+              <span id="bankOwner"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="qr-card" id="qrCard" style="display:none;">
+        <img id="qrImg" alt="QR" style="width:200px; height:200px; object-fit:contain;">
+      </div>
+    </div>
+
+    <div class="cards-row">
+      <div class="box" id="customerBox">
+        <h3>Thông tin khách hàng</h3>
+        <div class="form-row">
+          <svg class="customer-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Tên khách hàng</span><span id="customerName" class="line"></span>
+        </div>
+        <div class="form-row">
+          <svg class="customer-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>Địa chỉ</span><span id="customerAddress" class="line"></span>
+        </div>
+        <div class="form-row">
+          <svg class="customer-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.91.33 1.8.63 2.65a2 2 0 0 1-.45 2.11L8.09 9.69a16 16 0 0 0 6.22 6.22l1.21-1.21a2 2 0 0 1 2.11-.45c.85.3 1.74.51 2.65.63A2 2 0 0 1 22 16.92Z"/></svg>
+          <span>Số điện thoại</span><span id="customerPhone" class="line"></span>
+        </div>
+      </div>
+
+      <div class="box">
+        <h3>Điều kiện báo giá</h3>
+        <div class="terms-row">
+          <svg class="terms-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6"/><path d="M12 2v3"/></svg>
+          <span>Hiệu lực báo giá</span><span>:</span><span>07 ngày kể từ ngày báo giá</span>
+        </div>
+        <div class="terms-row">
+          <svg class="terms-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>
+          <span>Phương thức thanh toán</span><span>:</span><span>Chuyển khoản 100%</span>
+        </div>
+        <div class="terms-row">
+          <svg class="terms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v10H3z"/><path d="M14 10h4l3 3v4h-7z"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/></svg>
+          <span>Thời gian giao hàng</span><span>:</span><span>3 – 7 ngày sau khi xác nhận</span>
+        </div>
+        <div class="terms-row">
+          <svg class="terms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v10H3z"/><path d="M14 10h4l3 3v4h-7z"/><path d="M7 11h4"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/></svg>
+          <span>Phí vận chuyển</span><span>:</span><span>Theo thực tế hoặc thỏa thuận</span>
+        </div>
+        <div class="terms-row">
+          <svg class="terms-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 0 20"/><path d="M12 2a15.3 15.3 0 0 0 0 20"/></svg>
+          <span>Xuất xứ hàng hóa</span><span>:</span><span>Nhật Bản</span>
+        </div>
+        <div class="terms-row">
+          <svg class="terms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h4"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+          <span>Ghi chú</span><span>:</span><span>Báo giá chưa bao gồm VAT</span>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th class="col-stt">STT</th>
+          <th class="col-img">Hình ảnh</th>
+          <th class="col-name">Sản phẩm</th>
+          <th class="col-qty">Số lượng</th>
+          <th class="col-total">Thành tiền (đ)</th>
+        </tr>
+      </thead>
+      <tbody id="itemsTbody"></tbody>
+    </table>
+
+    <div class="bottom-section">
+      <div class="thank-card">
+        <div class="thank-title">🌸 Thank you!</div>
+        <p>Cảm ơn Quý khách đã quan tâm đến sản phẩm của Toujiki Japan. Chúng tôi luôn sẵn sàng hỗ trợ và mong được phục vụ Quý khách!</p>
+      </div>
+
+      <div class="summary">
+        <div class="summary-row">
+          <div class="summary-label">Tổng tiền hàng</div>
+          <div class="summary-value" id="summarySubTotal"></div>
+        </div>
+        <div id="discountRows"></div>
+        <div id="subTotalRows"></div>
+        <div class="summary-row pay-row">
+          <div class="summary-label">Cần thanh toán</div>
+          <div class="summary-value" id="summaryGrandTotal"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="footer dark">
+    <div class="benefits">
+      <div class="benefit">
+        <div class="benefit-icon">
+          <svg class="footer-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16v11H4z"/>
+            <path d="M4 7l8 6 8-6"/>
+            <path d="M7 4h10"/>
+          </svg>
+        </div>
+        <div><h4>Sản phẩm chính hãng</h4><p>Cam kết 100% hàng nhập khẩu từ Nhật Bản</p></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon">
+          <svg class="footer-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 8.5 12 3 3 8.5l9 5.5 9-5.5Z"/>
+            <path d="M3 8.5v7l9 5.5 9-5.5v-7"/>
+            <path d="M12 14v7"/>
+            <path d="M8 6 17 11.5"/>
+            <path d="M16.5 17.5 18.5 19.5 22 15.5"/>
+          </svg>
+        </div>
+        <div><h4>Đóng gói an toàn</h4><p>Đóng gói kỹ lưỡng, chống sốc</p></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon">
+          <svg class="footer-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7h11v10H3z"/>
+            <path d="M14 10h4l3 3v4h-7z"/>
+            <circle cx="7" cy="19" r="2"/>
+            <circle cx="17" cy="19" r="2"/>
+          </svg>
+        </div>
+        <div><h4>Giao hàng toàn quốc</h4><p>Giao hàng nhanh chóng, đúng hẹn</p></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon">
+          <svg class="footer-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 13a8 8 0 0 1 16 0"/>
+            <path d="M4 13v3a2 2 0 0 0 2 2h1v-7H6a2 2 0 0 0-2 2Z"/>
+            <path d="M20 13v3a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2Z"/>
+            <path d="M8 21h5a4 4 0 0 0 4-4"/>
+            <path d="M12 6a3 3 0 0 0-3 3"/>
+          </svg>
+        </div>
+        <div><h4>Hỗ trợ tận tâm</h4><p>Tư vấn nhiệt tình, hỗ trợ 24/7</p></div>
+      </div>
+    </div>
+    <div class="tagline-wrap">
+      <div class="tagline">Toujiki Japan – Mang tinh hoa Nhật Bản đến không gian của bạn. 🌸</div>
+    </div>
+  </section>
+</main>
+
+<div class="share-bar">
+  <button class="share-btn" id="shareBtn" onclick="captureAndShare()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+    </svg>
+    Chia sẻ báo giá
+  </button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  PARAMS
+// ══════════════════════════════════════════════════
+const KNOWN_PARAMS = [
+    'store_title','store_name','store_url','store_logo_width',
+    'address','phone','bank_info','qr_code',
+    'items_info','items_image','discount_info','sub_total_info',
+    'sub_total','grand_total',
+    'customer_info',
+    'quote_date'
+];
+
+function parseParams() {
+    const url = window.location.href;
+    const qi  = url.indexOf('?');
+    if (qi === -1) return {};
+    const qs = url.substring(qi);
+    const get = (name) => {
+        const re = new RegExp(`[?&]${name}=`);
+        const m  = qs.match(re);
+        if (!m) return '';
+        const after = qs.substring(m.index + m[0].length);
+        const ends  = KNOWN_PARAMS
+            .filter(p => p !== name)
+            .map(p => after.indexOf(`&${p}=`))
+            .filter(i => i !== -1);
+        const end = ends.length ? Math.min(...ends) : after.length;
+        try { return decodeURIComponent(after.substring(0, end)); }
+        catch { return after.substring(0, end); }
+    };
+    return Object.fromEntries(KNOWN_PARAMS.map(p => [p, get(p)]));
+}
+
+const P = parseParams();
+
+// ══════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════
+function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n); }
+
+function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+
+function hide(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+}
+
+async function fetchDataUrl(url) {
+    if (!url) return null;
+    try {
+        const r = await fetch(url, { mode: 'cors', cache: 'no-cache', credentials: 'omit' });
+        if (!r.ok) return null;
+        const blob = await r.blob();
+        return new Promise(res => {
+            const rd = new FileReader();
+            rd.onloadend = () => res(rd.result);
+            rd.readAsDataURL(blob);
+        });
+    } catch { return null; }
+}
+
+function parsePipeList(str) {
+    if (!str) return [];
+    return str.split(/\s*,\s*/).map(s => {
+        const item = {};
+        s.trim().split('|').forEach(pair => {
+            const ci = pair.indexOf(':');
+            if (ci > 0) item[pair.substring(0, ci).trim()] = pair.substring(ci + 1).trim();
+        });
+        return item;
+    });
+}
+
+function parseItems(infoStr, imageStr) {
+    if (!infoStr) return [];
+    const imgs = imageStr ? imageStr.split(/\s*,\s*/).filter(Boolean) : [];
+    return parsePipeList(infoStr).map((item, i) => {
+        if (imgs[i]) item.image_url = imgs[i];
+        return item;
+    });
+}
+
+// ══════════════════════════════════════════════════
+//  POPULATE
+// ══════════════════════════════════════════════════
+async function populate() {
+
+    // Title & date
+    if (P.store_title) document.title = P.store_title;
+    let displayDate;
+    if (!P.quote_date) {
+        const d = new Date();
+        displayDate = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    } else if (P.quote_date.includes('/')) {
+        displayDate = P.quote_date.split(' ')[0];
+    } else {
+        const d = new Date(P.quote_date);
+        displayDate = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+    setText('quoteDate', 'Ngày: ' + displayDate);
+
+    // Store name & logo placeholder letter
+    if (P.store_name) {
+        setText('storeName', P.store_name);
+        setText('logoPlaceholder', P.store_name.charAt(0).toUpperCase());
+    }
+
+    // Logo image
+    const logoUrl = await fetchDataUrl(P.store_url);
+    if (logoUrl) {
+        const img = document.getElementById('logoImg');
+        img.src = logoUrl;
+        img.style.display = 'block';
+        hide('logoPlaceholder');
+    }
+
+    // Store contact — hide row if param missing
+    if (P.address) setText('storeAddress', P.address); else hide('addressItem');
+    if (P.phone)   setText('storePhone',   P.phone);   else hide('phoneItem');
+
+    // Bank info
+    if (P.bank_info) {
+        const parts = P.bank_info.split(' - ');
+        setText('bankName',    parts[0] || '');
+        setText('bankAccount', parts[1] || '');
+        setText('bankOwner',   parts[2] || '');
+    }
+
+    // QR code
+    const qrUrl = await fetchDataUrl(P.qr_code);
+    if (qrUrl) {
+        document.getElementById('qrImg').src = qrUrl;
+        document.getElementById('qrCard').style.display = 'flex';
+    }
+
+    // Customer info
+    if (P.customer_info) {
+        const c = parsePipeList(P.customer_info)[0] || {};
+        if (c.customer_name) {
+            const el = document.getElementById('customerName');
+            el.textContent = c.customer_name;
+            el.classList.remove('line');
+        }
+        if (c.customer_address) {
+            const el = document.getElementById('customerAddress');
+            el.textContent = c.customer_address;
+            el.classList.remove('line');
+        }
+        if (c.customer_phone) {
+            const el = document.getElementById('customerPhone');
+            el.textContent = c.customer_phone;
+            el.classList.remove('line');
+        }
+    }
+
+    // Product items
+    const items = parseItems(P.items_info, P.items_image);
+    if (items.length > 0) {
+        const dataUrls = await Promise.all(items.map(it => fetchDataUrl(it.image_url)));
+        const tbody = document.getElementById('itemsTbody');
+        tbody.innerHTML = '';
+        items.forEach((item, i) => {
+            const lineTotal = parseInt(item.line_total) || 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="col-stt">${i + 1}</td>
+                <td class="col-img">${dataUrls[i]
+                    ? `<img class="product-img" src="${dataUrls[i]}" alt="" style="display:block;">`
+                    : `<div class="product-img">🏺</div>`
+                }</td>
+                <td class="col-name"><div class="product-name">${item.name || ''}</div></td>
+                <td class="col-qty" style="text-align:center;">${item.quantity || 1}</td>
+                <td class="col-total" style="text-align:right;">${fmt(lineTotal)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Summary
+    const subTotal   = parseInt(P.sub_total)  || 0;
+    const grandTotal = P.grand_total !== '' ? parseInt(P.grand_total) : subTotal;
+
+    setText('summarySubTotal',   fmt(subTotal)   + ' đ');
+    setText('summaryGrandTotal', fmt(grandTotal) + ' đ');
+
+    // Discount rows
+    const discounts = parsePipeList(P.discount_info);
+    const discountContainer = document.getElementById('discountRows');
+    discounts.forEach(d => {
+        const pct   = parseInt(d.percent) || 0;
+        const label = pct > 0 ? `${d.name} ${pct}%` : (d.name || 'Chiết khấu');
+        const price = parseInt(d.price) || 0;
+        const row = document.createElement('div');
+        row.className = 'summary-row';
+        row.innerHTML = `<div class="summary-label">${label}</div><div class="summary-value discount">− ${fmt(price)} đ</div>`;
+        discountContainer.appendChild(row);
+    });
+
+    // Sub-total info rows
+    const subInfos = parsePipeList(P.sub_total_info);
+    const subContainer = document.getElementById('subTotalRows');
+    subInfos.forEach(s => {
+        const value = parseInt(s.value) || 0;
+        if (!value) return;
+        const row = document.createElement('div');
+        row.className = 'summary-row';
+        row.innerHTML = `<div class="summary-label">${s.name || ''}</div><div class="summary-value">${fmt(value)} đ</div>`;
+        subContainer.appendChild(row);
+    });
+}
+
+// ══════════════════════════════════════════════════
+//  SHARE
+// ══════════════════════════════════════════════════
+async function captureAndShare() {
+    const btn = document.getElementById('shareBtn');
+    btn.disabled = true;
+    btn.textContent = 'Đang tạo ảnh...';
+    try {
+        const page  = document.getElementById('quotePage');
+        const pageW = page.scrollWidth;
+        const pageH = page.scrollHeight;
+        const canvas = await html2canvas(page, {
+            backgroundColor: '#ffffff',
+            scale          : 2,
+            useCORS        : false,
+            allowTaint     : true,
+            logging        : false,
+            width          : pageW,
+            height         : pageH,
+            windowWidth    : pageW,
+            windowHeight   : pageH,
+            onclone: (doc) => {
+                const p = doc.getElementById('quotePage');
+                p.style.border       = 'none';
+                p.style.borderRadius = '0';
+                p.style.boxShadow    = 'none';
+            }
+        });
+
+        const blob = await new Promise((res, rej) =>
+            canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), 'image/png', 0.95)
+        );
+        const file = new File([blob], 'bao-gia.png', { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+            await navigator.share({ title: document.title || 'Báo giá', files: [file] });
+        } else {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(file);
+            a.download = file.name;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    } catch (e) {
+        if (e.name !== 'AbortError') console.error('[share]', e);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+        </svg> Chia sẻ báo giá`;
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () =>
+    populate().finally(() =>
+        document.getElementById('loadingOverlay').classList.add('hidden')
+    )
+);
+</script>
+</body>
+</html>
