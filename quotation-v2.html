@@ -579,8 +579,7 @@
 <main class="quote-page" id="quotePage">
   <section class="header dark">
     <div class="brand">
-      <div class="logo-box" id="logoBox">
-        <img id="logoImg" alt="Logo" style="display:none; width:100%; height:100%; object-fit:contain; border-radius:14px;">
+      <div class="logo-box">
         <span id="logoPlaceholder"></span>
       </div>
       <div>
@@ -893,15 +892,6 @@ async function populate() {
         setText('logoPlaceholder', P.store_name.charAt(0).toUpperCase());
     }
 
-    // Logo image
-    const logoUrl = await fetchDataUrl(P.store_url);
-    if (logoUrl) {
-        const img = document.getElementById('logoImg');
-        img.src = logoUrl;
-        img.style.display = 'block';
-        hide('logoPlaceholder');
-    }
-
     // Store contact — hide row if param missing
     if (P.address) setText('storeAddress', P.address); else hide('addressItem');
     if (P.phone)   setText('storePhone',   P.phone);   else hide('phoneItem');
@@ -1010,7 +1000,7 @@ async function captureAndShare() {
     btn.textContent = 'Đang tạo ảnh...';
     try {
         const page  = document.getElementById('quotePage');
-        const pageW = page.scrollWidth;
+        const pageW = page.offsetWidth;
         const pageH = page.scrollHeight;
         const canvas = await html2canvas(page, {
             backgroundColor: '#ffffff',
@@ -1020,7 +1010,7 @@ async function captureAndShare() {
             logging        : false,
             width          : pageW,
             height         : pageH,
-            windowWidth    : pageW,
+            windowWidth    : window.innerWidth,
             windowHeight   : pageH,
             onclone: (doc) => {
                 const p = doc.getElementById('quotePage');
