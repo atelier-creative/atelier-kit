@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-version" content="12">
   <title>Native Share Button</title>
   <style>
     body {
@@ -439,7 +440,10 @@
     // Decode the full URL — AppSheet needs decoded Vietnamese in tableName/fileName to resolve
     // the file path. Signature validation is normalized server-side so decoding is safe.
     let imageUrl2;
-    try { imageUrl2 = decodeURIComponent(imageUrl); } catch { imageUrl2 = imageUrl; }
+    try { imageUrl2 = decodeURIComponent(imageUrl); } catch { 
+      imageUrl2 = imageUrl; 
+      console.log(`error decodeURIComponent:`, imageUrl);
+    }
 
     console.log(`Fetching image ${index + 1}:`, imageUrl2);
 
