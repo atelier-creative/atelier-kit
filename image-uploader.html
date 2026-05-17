@@ -330,7 +330,7 @@
 // ═══════════════════════════════════════════════════════════
 //  CONFIG  — all values come from URL params, nothing hardcoded
 // ═══════════════════════════════════════════════════════════
-const MAX_CONCURRENT    = 3;    // parallel uploads
+const MAX_CONCURRENT    = 1;    // serial uploads — preserves selection order in AppSheet records
 const MAX_FILE_SIZE     = 10 * 1024 * 1024;  // 10 MB
 
 function formatSize(bytes) {
@@ -815,15 +815,16 @@ function pumpQueue() {
     updateSummary();
 }
 
-function buildUploadedName(file) {
-    const now  = new Date();
-    const p    = n => String(n).padStart(2, '0');
-    const ts   = `${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}` +
-                 `_${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`;
-    const dot  = file.name.lastIndexOf('.');
-    const base = dot > -1 ? file.name.slice(0, dot) : file.name;
-    const ext  = dot > -1 ? file.name.slice(dot)    : '';
-    return `${base}-${ts}${ext}`;
+function buildUploadedName(file, order) {
+    const now    = new Date();
+    const p      = n => String(n).padStart(2, '0');
+    const ts     = `${now.getFullYear()}${p(now.getMonth()+1)}${p(now.getDate())}` +
+                   `_${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`;
+    const dot    = file.name.lastIndexOf('.');
+    const base   = dot > -1 ? file.name.slice(0, dot) : file.name;
+    const ext    = dot > -1 ? file.name.slice(dot)    : '';
+    const prefix = String(order + 1).padStart(3, '0');
+    return `${prefix}-${base}-${ts}${ext}`;
 }
 
 async function runUpload(item) {
@@ -836,7 +837,7 @@ async function runUpload(item) {
     try {
         // 1. Resolve yyyy/mm/dd folder in Drive
         const dayFolderId  = await getDayFolderId(signal);
-        const uploadedName = buildUploadedName(item.file);
+        const uploadedName = buildUploadedName(item.file, item.id);
 
         // 2. Upload to Drive
         const driveFile = await uploadToDrive(
