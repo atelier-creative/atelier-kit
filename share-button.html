@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="x-version" content="13">
+  <meta name="x-version" content="14">
   <title>Native Share Button</title>
   <style>
     body {
@@ -382,7 +382,7 @@
 
       const badge = document.createElement('div');
       badge.className = 'img-badge';
-      badge.textContent = String(idx + 1).padStart(3, '0');
+      badge.textContent = String(idx + 1);
 
       const img = document.createElement('img');
       img.loading = 'lazy';
