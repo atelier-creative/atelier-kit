@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="x-version" content="12">
+  <meta name="x-version" content="13">
   <title>Native Share Button</title>
   <style>
     body {
@@ -350,7 +350,7 @@
     const wrap = document.getElementById('previewThumbnail');
     const label = document.getElementById('previewThumbnailLabel');
     try {
-      const file = await fetchImageAsFile(thumbUrl, 0);
+      const file = await fetchImageAsFile(thumbUrl, 0, 'thumbnail');
       const img = document.createElement('img');
       img.src = URL.createObjectURL(file);
       img.alt = 'thumbnail';
@@ -436,16 +436,17 @@
   }
 
   // Fetch image from URL and convert to File object
-  async function fetchImageAsFile(imageUrl, index) {
+  // source: 'thumbnail' | 'q'
+  async function fetchImageAsFile(imageUrl, index, source = 'q') {
     // Decode the full URL — AppSheet needs decoded Vietnamese in tableName/fileName to resolve
     // the file path. Signature validation is normalized server-side so decoding is safe.
     let imageUrl2;
-    try { imageUrl2 = decodeURIComponent(imageUrl); } catch { 
-      imageUrl2 = imageUrl; 
-      console.log(`error decodeURIComponent:`, imageUrl);
+    try { imageUrl2 = decodeURIComponent(imageUrl); } catch {
+      imageUrl2 = imageUrl;
+      console.log(`[${source}] error decodeURIComponent:`, imageUrl);
     }
 
-    console.log(`Fetching image ${index + 1}:`, imageUrl2);
+    console.log(`[${source}] Fetching image ${index + 1}: `, imageUrl2);
 
     try {
       // Try to fetch the image
@@ -576,7 +577,7 @@
           if (thumbUrl) {
             showMessage('Loading thumbnail...', 'info');
             try {
-              const thumbFile = await fetchImageAsFile(thumbUrl, 0);
+              const thumbFile = await fetchImageAsFile(thumbUrl, 0, 'thumbnail');
               shareData.files = [thumbFile];
               itemsToShare.push('thumbnail');
             } catch (fetchError) {
