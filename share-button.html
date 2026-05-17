@@ -409,12 +409,13 @@
     const end = stops.length ? Math.min(...stops) : after.length;
 
     const qValue = after.substring(0, end);
-    let decoded;
-    try { decoded = decodeURIComponent(qValue); } catch { decoded = qValue; }
 
-    return decoded
+    return qValue
       .split(/\s*,\s*/)
-      .map(url => url.trim())
+      .map(rawUrl => {
+        const s = rawUrl.trim();
+        try { return decodeURIComponent(s); } catch { return s; }
+      })
       .filter(url => url.length > 0 && url.startsWith('http'));
   }
 
