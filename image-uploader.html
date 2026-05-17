@@ -823,8 +823,9 @@ function buildUploadedName(file, order) {
     const dot    = file.name.lastIndexOf('.');
     const base   = dot > -1 ? file.name.slice(0, dot) : file.name;
     const ext    = dot > -1 ? file.name.slice(dot)    : '';
-    const prefix = String(order + 1).padStart(3, '0');
-    return `${prefix}-${base}-${ts}${ext}`;
+    const prefix    = String(order + 1).padStart(3, '0');
+    const productId = PARAMS.product_id || '';
+    return `${prefix}-${base}-${ts}${productId ? '-' + productId : ''}${ext}`;
 }
 
 async function runUpload(item) {
