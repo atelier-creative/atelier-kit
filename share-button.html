@@ -381,7 +381,7 @@
 
       const badge = document.createElement('div');
       badge.className = 'img-badge';
-      badge.textContent = `${idx + 1}`;
+      badge.textContent = String(idx + 1).padStart(3, '0');
 
       const img = document.createElement('img');
       img.loading = 'lazy';
