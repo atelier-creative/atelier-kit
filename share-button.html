@@ -436,9 +436,10 @@
 
   // Fetch image from URL and convert to File object
   async function fetchImageAsFile(imageUrl, index) {
-    // AppSheet /image/getimageurl requires raw / in fileName (not %2F).
-    // Only replace %2F → / — leave all other %XX intact so AppSheet signature stays valid.
-    const imageUrl2 = imageUrl.replace(/%2F/gi, '/');
+    // Decode the full URL — AppSheet needs decoded Vietnamese in tableName/fileName to resolve
+    // the file path. Signature validation is normalized server-side so decoding is safe.
+    let imageUrl2;
+    try { imageUrl2 = decodeURIComponent(imageUrl); } catch { imageUrl2 = imageUrl; }
 
     console.log(`Fetching image ${index + 1}:`, imageUrl2);
 
