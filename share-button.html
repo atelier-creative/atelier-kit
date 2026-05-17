@@ -511,9 +511,17 @@
       return imageFilesCache;
     }
 
-    imageFilesPromise = Promise.all(
+    imageFilesPromise = Promise.allSettled(
             imageUrls.map((url, index) => fetchImageAsFile(url, index))
-    ).then(files => {
+    ).then(results => {
+      // Keep results in original index order; skip any that failed
+      const files = results
+        .map((r, i) => {
+          if (r.status === 'fulfilled') return r.value;
+          console.warn(`Image ${i + 1} failed to load:`, r.reason?.message);
+          return null;
+        })
+        .filter(Boolean);
       imageFilesCache = files;
       return files;
     }).finally(() => {
