@@ -476,6 +476,11 @@
         console.warn('Could not parse filename from URL:', urlError);
       }
 
+      // Add order prefix if filename doesn't already start with one (e.g. "001-")
+      if (!/^\d{3}-/.test(filename)) {
+        filename = String(index + 1).padStart(3, '0') + '-' + filename;
+      }
+
       // Determine file type from blob or default to jpeg
       let fileType = blob.type;
       if (!fileType || fileType === 'application/octet-stream') {
