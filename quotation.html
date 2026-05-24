@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="x-version" content="2">
+    <meta name="x-version" content="3">
     <title>Báo Giá</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -439,7 +439,7 @@
 // ══════════════════════════════════════════════════
 const KNOWN_PARAMS = [
     'store_title','store_name','store_url','store_logo_width',
-    'address','phone','bank_info','qr_code','bank_info_personal_account','qr_code_personal_account',
+    'address','phone','bank_info','qr_code','bank_info_personal_account','qr_code_personal_account_code',
     'items_info','items_image','discount_info','sub_total_info',
     'sub_total','grand_total',
     'customer_info',
@@ -572,7 +572,7 @@ async function populate() {
     // Footer: bank + QR — prefetch both accounts
     const [qrBusiness, qrPersonal] = await Promise.all([
         fetchDataUrl(P.qr_code),
-        fetchDataUrl(P.qr_code_personal_account)
+        fetchDataUrl(P.qr_code_personal_account_code)
     ]);
 
     function applyBankInfo(bankInfo, qrUrl) {
