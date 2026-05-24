@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-version" content="2">
     <title>Báo Giá</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -219,6 +220,42 @@
             gap: 8px 16px;
         }
 
+        /* ── Account toggle bar ─────────────────────── */
+        .account-bar {
+            position: fixed;
+            bottom: 70px; left: 0; right: 0;
+            padding: 8px 16px;
+            background: var(--ink);
+            border-top: 1px solid rgba(201,160,48,.15);
+            display: none;
+        }
+        .account-bar.visible { display: block; }
+        .account-toggle {
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(201,160,48,.4);
+        }
+        .account-toggle label {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(201,160,48,.6);
+            cursor: pointer;
+            background: var(--ink-mid);
+            letter-spacing: .3px;
+            transition: background .15s, color .15s;
+        }
+        .account-toggle input[type="radio"] { display: none; }
+        .account-toggle input:checked + label {
+            background: var(--gold);
+            color: var(--ink);
+        }
+
         /* ── Share bar ───────────────────────────────── */
         .share-bar {
             position: fixed;
@@ -376,6 +413,16 @@
 
 </div>
 
+<!-- ACCOUNT TOGGLE — outside .page, not captured -->
+<div class="account-bar" id="accountBar">
+    <div class="account-toggle">
+        <input type="radio" name="accountType" id="accBusiness" value="business" checked>
+        <label for="accBusiness">Hộ kinh doanh</label>
+        <input type="radio" name="accountType" id="accPersonal" value="personal">
+        <label for="accPersonal">Cá nhân</label>
+    </div>
+</div>
+
 <!-- SHARE BAR — outside .page, not captured -->
 <div class="share-bar">
     <button class="share-btn" id="shareBtn" onclick="captureAndShare()">
@@ -392,7 +439,7 @@
 // ══════════════════════════════════════════════════
 const KNOWN_PARAMS = [
     'store_title','store_name','store_url','store_logo_width',
-    'address','phone','bank_info','qr_code',
+    'address','phone','bank_info','qr_code','bank_info_personal_account','qr_code_personal_account',
     'items_info','items_image','discount_info','sub_total_info',
     'sub_total','grand_total',
     'customer_info',
@@ -509,32 +556,59 @@ async function populate() {
     if (P.phone)   setText('storePhone',   P.phone);   else hide('storePhoneItem');
     if (P.address) setText('storeAddress', P.address); else hide('storeAddressItem');
 
-    // Customer section — parsed from customer_info = customer_name:X|customer_phone:X|customer_address:X
+    // Customer section — parse directly (address may contain commas, skip comma-split)
     if (P.customer_info) {
-        const c = parsePipeList(P.customer_info)[0] || {};
+        const c = {};
+        P.customer_info.split('|').forEach(pair => {
+            const ci = pair.indexOf(':');
+            if (ci > 0) c[pair.substring(0, ci).trim()] = pair.substring(ci + 1).trim();
+        });
         document.getElementById('customerSection').style.display = 'grid';
         if (c.customer_name)    setText('customerName',    c.customer_name);
         if (c.customer_address) setText('customerAddress', c.customer_address);
         if (c.customer_phone)   setText('customerPhone',   c.customer_phone);
     }
 
-    // Footer: bank text
-    if (P.bank_info) {
-        const parts = P.bank_info.split(' - ');
-        setText('footerBankName',    parts[0] || '');
-        setText('footerBankAccount', parts[1] || '');
-        setText('footerBankOwner',   parts[2] || '');
+    // Footer: bank + QR — prefetch both accounts
+    const [qrBusiness, qrPersonal] = await Promise.all([
+        fetchDataUrl(P.qr_code),
+        fetchDataUrl(P.qr_code_personal_account)
+    ]);
+
+    function applyBankInfo(bankInfo, qrUrl) {
+        if (bankInfo) {
+            const parts = bankInfo.split(' - ');
+            setText('footerBankName',    parts[0] || '');
+            setText('footerBankAccount', parts[1] || '');
+            setText('footerBankOwner',   parts[2] || '');
+        } else {
+            setText('footerBankName', ''); setText('footerBankAccount', ''); setText('footerBankOwner', '');
+        }
+        const qrImg  = document.getElementById('qrImg');
+        const qrWrap = document.getElementById('qrWrap');
+        if (qrUrl) { qrImg.src = qrUrl; qrWrap.style.display = 'block'; }
+        else        { qrImg.src = '';    qrWrap.style.display = 'none';  }
     }
 
-    // Footer: QR code
-    const qrUrl = await fetchDataUrl(P.qr_code);
-    if (qrUrl) {
-        document.getElementById('qrImg').src = qrUrl;
-        document.getElementById('qrWrap').style.display = 'block';
+    // Apply initial state (business)
+    applyBankInfo(P.bank_info, qrBusiness);
+
+    // Show toggle only when personal account params are present
+    if (P.bank_info_personal_account || qrPersonal) {
+        document.getElementById('accountBar').classList.add('visible');
+        document.querySelectorAll('input[name="accountType"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === 'personal') {
+                    applyBankInfo(P.bank_info_personal_account, qrPersonal);
+                } else {
+                    applyBankInfo(P.bank_info, qrBusiness);
+                }
+            });
+        });
     }
 
     // Hide footer entirely if nothing to show
-    if (!P.bank_info && !qrUrl) hide('footer');
+    if (!P.bank_info && !qrBusiness && !P.bank_info_personal_account && !qrPersonal) hide('footer');
 
     // Product items
     const items = parseItems(P.items_info, P.items_image);
