@@ -26,7 +26,7 @@
       background: var(--ink);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       padding: 20px;
-      padding-bottom: 88px;
+      padding-bottom: 120px;
     }
 
     /* ─── PAGE WRAPPER ───────────────────────────── */
@@ -378,6 +378,40 @@
       background: rgba(201,160,48,.35);
     }
 
+    /* ─── ACCOUNT TOGGLE ────────────────────────── */
+    .account-bar {
+      position: fixed;
+      bottom: 62px; left: 0; right: 0;
+      padding: 8px 16px;
+      background: var(--ink);
+      border-top: 1px solid rgba(201,160,48,.15);
+      display: none;
+      z-index: 10;
+    }
+    .account-bar.visible { display: block; }
+    .account-toggle {
+      display: flex;
+      max-width: 600px;
+      margin: 0 auto;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(201,160,48,.4);
+    }
+    .account-toggle label {
+      flex: 1;
+      text-align: center;
+      padding: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(201,160,48,.6);
+      cursor: pointer;
+      background: var(--ink-mid);
+      letter-spacing: .3px;
+      transition: background .15s, color .15s;
+    }
+    .account-toggle input[type="radio"] { display: none; }
+    .account-toggle input:checked + label { background: var(--gold); color: var(--ink); }
+
     /* ─── SHARE BAR ──────────────────────────────── */
     .share-bar {
       position: fixed;
@@ -562,6 +596,16 @@
 
 </div>
 
+<!-- ACCOUNT TOGGLE — outside #page, not captured -->
+<div class="account-bar" id="accountBar">
+  <div class="account-toggle">
+    <input type="radio" name="accountType" id="accBusiness" value="business" checked>
+    <label for="accBusiness">Hộ kinh doanh</label>
+    <input type="radio" name="accountType" id="accPersonal" value="personal">
+    <label for="accPersonal">Cá nhân</label>
+  </div>
+</div>
+
 <div class="share-bar">
   <button class="share-btn" id="shareBtn" onclick="captureAndShare()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -577,7 +621,7 @@
 // ══════════════════════════════════════════════════
 const KNOWN_PARAMS = [
     'store_title','store_name','store_url','store_logo_width',
-    'address','phone','bank_info','qr_code',
+    'address','phone','bank_info','qr_code','bank_info_personal_account','qr_code_personal_account_code',
     'items_info','items_image','discount_info','sub_total_info',
     'sub_total','grand_total',
     'customer_info',
@@ -674,18 +718,19 @@ async function populate() {
     }
     document.getElementById('docDate').textContent = displayDate;
 
-    // Logo
-    const logoUrl = await fetchDataUrl(P.store_url);
+    // Logo — show first-letter placeholder immediately, replace with image if available
     const logoBox = document.getElementById('logoBox');
     const logoSub = document.getElementById('logoSub');
+    const name = P.store_name || '';
+    logoBox.innerHTML = `<div class="logo-name">${name.charAt(0).toUpperCase()}</div>`;
+    logoSub.style.display = 'none';
+    const logoUrl = await fetchDataUrl(P.store_url);
     if (logoUrl) {
         const w = parseInt(P.store_logo_width) || 80;
         logoBox.innerHTML = `<img src="${logoUrl}" style="width:${w}px; display:block;">`;
-        if (P.store_name) logoSub.textContent = P.store_name;
-    } else {
-        const name = P.store_name || '';
+        if (name) { logoSub.textContent = name; logoSub.style.display = ''; }
+    } else if (name) {
         logoBox.innerHTML = `<div class="logo-name">${name}</div>`;
-        logoSub.style.display = 'none';
     }
 
     // Store info
@@ -713,26 +758,43 @@ async function populate() {
         else                    hide('custPhoneField');
     }
 
-    // Bank info
-    if (P.bank_info) {
-        const parts = P.bank_info.split(' - ');
-        if (parts[0]) document.getElementById('bankName').textContent    = parts[0];
-        else          hide('bankNameField');
-        if (parts[1]) document.getElementById('bankAccount').textContent = parts[1];
-        else          hide('bankAccountField');
-        if (parts[2]) document.getElementById('bankOwner').textContent   = parts[2];
-        else          hide('bankOwnerField');
+    // Bank info + QR — prefetch both accounts in parallel
+    const [qrBusiness, qrPersonal] = await Promise.all([
+        fetchDataUrl(P.qr_code),
+        fetchDataUrl(P.qr_code_personal_account_code)
+    ]);
+
+    function applyBankInfo(bankInfo, qrUrl) {
+        const parts = bankInfo ? bankInfo.split(' - ') : [];
+        document.getElementById('bankName').textContent    = parts[0] || '';
+        document.getElementById('bankAccount').textContent = parts[1] || '';
+        document.getElementById('bankOwner').textContent   = parts[2] || '';
+        const qrWrap = document.getElementById('qrWrap');
+        if (qrUrl) {
+            qrWrap.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = qrUrl;
+            img.style.cssText = 'width:100%; height:100%; object-fit:contain; border-radius:8px;';
+            qrWrap.appendChild(img);
+        } else {
+            qrWrap.textContent = '▦';
+        }
     }
 
-    // QR code
-    const qrUrl = await fetchDataUrl(P.qr_code);
-    if (qrUrl) {
-        const qrWrap = document.getElementById('qrWrap');
-        qrWrap.textContent = '';
-        const img = document.createElement('img');
-        img.src = qrUrl;
-        img.style.cssText = 'width:100%; height:100%; object-fit:contain; border-radius:8px;';
-        qrWrap.appendChild(img);
+    applyBankInfo(P.bank_info, qrBusiness);
+
+    if (P.bank_info_personal_account || qrPersonal) {
+        document.getElementById('accountBar').classList.add('visible');
+        document.querySelectorAll('input[name="accountType"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === 'personal') applyBankInfo(P.bank_info_personal_account, qrPersonal);
+                else                            applyBankInfo(P.bank_info, qrBusiness);
+            });
+        });
+    }
+
+    if (!P.bank_info && !qrBusiness && !P.bank_info_personal_account && !qrPersonal) {
+        document.querySelector('.footer').style.display = 'none';
     }
 
     // Product items
@@ -765,7 +827,7 @@ async function populate() {
                     </div>
                 </td>
                 <td class="td-sl">${item.quantity || 1}</td>
-                <td class="td-tt">${fmt(lineTotal)} đ</td>
+                <td class="td-tt">${fmt(lineTotal)} ₫</td>
             `;
             tbody.appendChild(tr);
         });
@@ -774,8 +836,8 @@ async function populate() {
     // Summary
     const subTotal   = parseInt(P.sub_total) || 0;
     const grandTotal = P.grand_total !== '' ? parseInt(P.grand_total) : subTotal;
-    document.getElementById('summarySubTotal').textContent   = fmt(subTotal)   + ' đ';
-    document.getElementById('summaryGrandTotal').textContent = fmt(grandTotal) + ' đ';
+    document.getElementById('summarySubTotal').textContent   = fmt(subTotal)   + ' ₫';
+    document.getElementById('summaryGrandTotal').textContent = fmt(grandTotal) + ' ₫';
 
     // Discount rows
     const discounts = parsePipeList(P.discount_info);
@@ -786,7 +848,7 @@ async function populate() {
         const price = parseInt(d.price) || 0;
         const row = document.createElement('div');
         row.className = 'sum-row sum-discount';
-        row.innerHTML = `<span class="sl">${label}</span><span class="sv">− ${fmt(price)} đ</span>`;
+        row.innerHTML = `<span class="sl">${label}</span><span class="sv">− ${fmt(price)} ₫</span>`;
         discountContainer.appendChild(row);
     });
 
@@ -798,7 +860,7 @@ async function populate() {
         if (!value) return;
         const row = document.createElement('div');
         row.className = 'sum-row';
-        row.innerHTML = `<span class="sl">${s.name || ''}</span><span class="sv">${fmt(value)} đ</span>`;
+        row.innerHTML = `<span class="sl">${s.name || ''}</span><span class="sv">${fmt(value)} ₫</span>`;
         subContainer.appendChild(row);
     });
 
