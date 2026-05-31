@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-version" content="1">
+  <title>Báo Giá</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Allura&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --ink      : #0f0d0a;
+      --ink-mid  : #1a1710;
+      --ink-soft : #222018;
+      --gold     : #c9a030;
+      --gold-lt  : #e8c96a;
+      --cream    : #faf6ef;
+      --cream-dk : #e2d9c5;
+      --txt      : #1a1710;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 20px;
+      padding-bottom: 88px;
+    }
+
+    /* ─── PAGE WRAPPER ───────────────────────────── */
+    #page {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--cream);
+      overflow: hidden;
+      box-shadow: 0 16px 60px rgba(0,0,0,.8);
+      border: 1px solid rgba(201,160,48,.2);
+    }
+
+    /* ─── HEADER ─────────────────────────────────── */
+    .header {
+      background: var(--ink);
+      padding: 20px 24px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 2px solid var(--gold);
+    }
+
+    .logo-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo-box {
+      border: 1.5px solid rgba(201,160,48,.55);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gold);
+      text-align: center;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    .logo-sub {
+      font-size: 7px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: rgba(201,160,48,.45);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .doc-meta { text-align: right; flex-shrink: 0; }
+
+    .doc-title {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 5px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    .doc-sep {
+      width: 36px;
+      height: 1px;
+      background: rgba(201,160,48,.35);
+      margin: 7px 0 7px auto;
+    }
+
+    .doc-date { font-size: 13px; color: rgba(255,255,255,.5); }
+
+    /* ─── INFO ROW ───────────────────────────────── */
+    .info-row {
+      background: var(--ink-soft);
+      display: grid;
+      grid-template-columns: 1fr 1px 2fr;
+    }
+
+    .info-col { padding: 14px 16px; }
+
+    .info-divider { background: rgba(201,160,48,.22); }
+
+    .section-title {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(201,160,48,.4);
+      margin-bottom: 10px;
+    }
+
+    .ifield { margin-bottom: 9px; }
+    .ifield:last-child { margin-bottom: 0; }
+
+    .ilabel {
+      display: block;
+      font-size: 7.5px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 2px;
+    }
+
+    .ival {
+      font-size: 11.5px;
+      color: rgba(255,255,255,.8);
+      line-height: 1.45;
+    }
+
+    .cust-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 9px;
+    }
+
+    /* ─── PRODUCT TABLE ──────────────────────────── */
+    .prod-table { width: 100%; border-collapse: collapse; }
+
+    .prod-table thead tr { background: var(--cream); }
+
+    .prod-table thead th {
+      padding: 14px 12px 12px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .th-stt { width: 44px; text-align: center; }
+    .th-sp  { text-align: left; }
+    .th-sl  { width: 44px; text-align: center; }
+    .th-tt  { width: 130px; text-align: right; padding-right: 20px !important; }
+
+    .prod-table tbody tr { background: var(--cream); }
+
+    .prod-table td { padding: 18px 12px; vertical-align: middle; }
+
+    .tr-divider td { padding: 0; line-height: 0; }
+    .tr-divider .sum-divider { margin: 0 20px; }
+
+    .td-stt {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--txt);
+    }
+
+    .prod-inner { display: flex; align-items: flex-start; gap: 14px; }
+
+    .prod-img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .prod-ph {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      background: var(--cream-dk);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .prod-desc { display: flex; flex-direction: column; gap: 8px; }
+
+    .prod-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--txt);
+      line-height: 1.6;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+
+    .prod-underline {
+      width: 32px;
+      height: 2px;
+      background: var(--gold);
+      border-radius: 2px;
+    }
+
+    .td-sl {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--txt);
+    }
+
+    .td-tt {
+      text-align: right;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--txt);
+      white-space: nowrap;
+      padding-right: 20px !important;
+    }
+
+    /* ─── SUMMARY ────────────────────────────────── */
+    .summary {
+      margin-left: 40%;
+      padding: 6px 0 16px;
+    }
+
+    .sum-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 20px;
+      font-size: 13px;
+    }
+
+    .sum-divider { height: 1px; background: var(--cream-dk); margin: 0 20px; }
+
+    .sl { font-weight: 400; color: #777; }
+    .sv { font-weight: 600; color: var(--txt); }
+
+    .sum-discount .sv { color: var(--gold); font-weight: 600; }
+
+    .sum-grand { padding: 6px 0 0; }
+
+    .sum-grand-inner {
+      background: var(--ink-mid);
+      border-radius: 8px;
+      padding: 12px 10px;
+      margin: 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sum-grand .sl {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--gold); white-space: nowrap;
+    }
+    .sum-grand .sv { font-size: 18px; font-weight: 800; color: var(--gold-lt); }
+
+    /* ─── FOOTER ─────────────────────────────────── */
+    .footer {
+      background: var(--ink-soft);
+      padding: 16px 20px 14px;
+    }
+
+    .footer-body {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 0;
+      padding-bottom: 12px;
+    }
+
+    .footer-divider { background: rgba(201,160,48,.22); }
+
+    .footer-title {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(201,160,48,.4);
+      margin-bottom: 10px;
+    }
+
+    .qr-bank { display: flex; gap: 8px; align-items: stretch; }
+
+    .qr-ph {
+      width: 110px;
+      height: 110px;
+      border-radius: 8px;
+      border: 1px solid rgba(201,160,48,.3);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      flex-shrink: 0;
+    }
+
+    .bfield { margin-bottom: 7px; padding-bottom: 7px; border-bottom: 1px solid rgba(201,160,48,.2); }
+    .bfield:last-child { margin-bottom: 0; border-bottom: none; }
+
+    .blabel {
+      display: block;
+      font-size: 7.5px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1px;
+    }
+
+    .bval { font-size: 9px; color: rgba(255,255,255,.8); font-weight: 500; }
+
+    /* Thank you */
+    .footer-ty { padding-top: 2px; }
+
+    .ty-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .ty-title {
+      font-family: 'Allura', 'Brush Script MT', cursive;
+      font-size: 48px;
+      color: var(--gold-lt);
+      line-height: 1;
+    }
+
+    .ty-flowers { font-size: 45px; align-self: flex-end; }
+
+    .ty-text {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-style: normal;
+      font-size: 12px;
+      color: rgba(255,255,255,.8);
+      line-height: 1.65;
+      text-align: justify;
+    }
+
+    .footer-tagline {
+      margin-top: 12px;
+      font-size: 11.5px;
+      font-style: italic;
+      color: rgba(255,255,255,.8);
+      letter-spacing: .3px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+    }
+    .footer-tagline::before,
+    .footer-tagline::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(201,160,48,.35);
+    }
+
+    /* ─── SHARE BAR ──────────────────────────────── */
+    .share-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 12px 16px;
+      background: var(--ink-mid);
+      border-top: 1px solid rgba(201,160,48,.25);
+      z-index: 10;
+    }
+    .share-btn {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      margin: 0 auto;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--ink-soft);
+      color: var(--gold-lt);
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      padding: 13px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .5px;
+      transition: opacity .2s;
+    }
+    .share-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ─── LOADING OVERLAY ────────────────────────── */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 100;
+    }
+    .loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(201,160,48,.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: rgba(255,255,255,.4); letter-spacing: .5px; }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Đang tải...</div>
+</div>
+
+<div id="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-box" id="logoBox"></div>
+      <div class="logo-sub" id="logoSub"></div>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-title">Báo Giá</div>
+      <div class="doc-sep"></div>
+      <div class="doc-date" id="docDate"></div>
+    </div>
+  </div>
+
+  <!-- INFO ROW -->
+  <div class="info-row" id="infoRow">
+    <div class="info-col">
+      <div class="section-title">Cửa hàng</div>
+      <div class="ifield" id="storePhoneField">
+        <span class="ilabel">Điện thoại</span>
+        <span class="ival" id="storePhone"></span>
+      </div>
+      <div class="ifield" id="storeAddressField">
+        <span class="ilabel">Địa chỉ</span>
+        <span class="ival" id="storeAddress"></span>
+      </div>
+    </div>
+    <div class="info-divider" id="custDivider"></div>
+    <div class="info-col" id="custCol">
+      <div class="section-title">Khách hàng</div>
+      <div class="cust-top">
+        <div class="ifield" id="custNameField">
+          <span class="ilabel">Họ tên</span>
+          <span class="ival" id="custName"></span>
+        </div>
+        <div class="ifield" id="custAddressField">
+          <span class="ilabel">Địa chỉ</span>
+          <span class="ival" id="custAddress"></span>
+        </div>
+      </div>
+      <div class="ifield" id="custPhoneField">
+        <span class="ilabel">Điện thoại</span>
+        <span class="ival" id="custPhone"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCT TABLE -->
+  <table class="prod-table">
+    <thead>
+      <tr>
+        <th class="th-stt">No.</th>
+        <th class="th-sp">Sản phẩm</th>
+        <th class="th-sl">SL</th>
+        <th class="th-tt">Thành tiền</th>
+      </tr>
+      <tr class="tr-divider">
+        <td colspan="4"><div class="sum-divider"></div></td>
+      </tr>
+    </thead>
+    <tbody id="itemsTbody"></tbody>
+  </table>
+
+  <!-- SUMMARY -->
+  <div class="sum-divider"></div>
+  <div class="summary">
+    <div class="sum-row">
+      <span class="sl">Tổng tiền hàng</span>
+      <span class="sv" id="summarySubTotal"></span>
+    </div>
+    <div class="sum-divider" id="discountDivider" style="display:none;"></div>
+    <div id="discountRows"></div>
+    <div id="subTotalRows"></div>
+    <div class="sum-grand">
+      <div class="sum-grand-inner">
+        <span class="sl">Cần thanh toán</span>
+        <span class="sv" id="summaryGrandTotal"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-body">
+
+      <div style="padding: 0 16px 0 0;">
+        <div class="footer-title">Thanh toán</div>
+        <div class="qr-bank">
+          <div class="qr-ph" id="qrWrap">▦</div>
+          <div>
+            <div class="bfield" id="bankNameField">
+              <span class="blabel">Ngân hàng</span>
+              <span class="bval" id="bankName"></span>
+            </div>
+            <div class="bfield" id="bankAccountField">
+              <span class="blabel">Số tài khoản</span>
+              <span class="bval" id="bankAccount"></span>
+            </div>
+            <div class="bfield" id="bankOwnerField">
+              <span class="blabel">Chủ tài khoản</span>
+              <span class="bval" id="bankOwner"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-divider"></div>
+
+      <div class="footer-ty" style="padding: 0 0 0 16px;">
+        <div class="ty-header">
+          <div class="ty-title">Thank you!</div>
+          <div class="ty-flowers">🌸</div>
+        </div>
+        <div class="ty-text">Toujiki Japan tin rằng từng tác phẩm gốm được chọn sẽ lưu giữ vẻ đẹp của sự tĩnh lặng, đem đến an hòa, may lành và nguồn cảm hứng bền lâu cho không gian sống của Quý khách!</div>
+      </div>
+
+    </div>
+    <div class="footer-tagline">Toujiki Japan - Nơi giữ lại vẻ đẹp của sự tĩnh lặng!</div>
+  </div>
+
+</div>
+
+<div class="share-bar">
+  <button class="share-btn" id="shareBtn" onclick="captureAndShare()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+    </svg>
+    Chia sẻ báo giá
+  </button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  PARAMS
+// ══════════════════════════════════════════════════
+const KNOWN_PARAMS = [
+    'store_title','store_name','store_url','store_logo_width',
+    'address','phone','bank_info','qr_code',
+    'items_info','items_image','discount_info','sub_total_info',
+    'sub_total','grand_total',
+    'customer_info',
+    'quote_date',
+    'scale'
+];
+
+function parseParams() {
+    const url = window.location.href;
+    const qi  = url.indexOf('?');
+    if (qi === -1) return {};
+    const qs = url.substring(qi);
+    const get = (name) => {
+        const re = new RegExp(`[?&]${name}=`);
+        const m  = qs.match(re);
+        if (!m) return '';
+        const after = qs.substring(m.index + m[0].length);
+        const ends  = KNOWN_PARAMS
+            .filter(p => p !== name)
+            .map(p => after.indexOf(`&${p}=`))
+            .filter(i => i !== -1);
+        const end = ends.length ? Math.min(...ends) : after.length;
+        try { return decodeURIComponent(after.substring(0, end)); }
+        catch { return after.substring(0, end); }
+    };
+    return Object.fromEntries(KNOWN_PARAMS.map(p => [p, get(p)]));
+}
+
+const P = parseParams();
+
+// ══════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════
+function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n); }
+
+function hide(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+}
+
+async function fetchDataUrl(url) {
+    if (!url) return null;
+    try {
+        const r = await fetch(url, { mode: 'cors', cache: 'no-cache', credentials: 'omit' });
+        if (!r.ok) return null;
+        const blob = await r.blob();
+        return new Promise(res => {
+            const rd = new FileReader();
+            rd.onloadend = () => res(rd.result);
+            rd.readAsDataURL(blob);
+        });
+    } catch { return null; }
+}
+
+function parsePipeList(str) {
+    if (!str) return [];
+    return str.split(/\s*,\s*/).map(s => {
+        const item = {};
+        s.trim().split('|').forEach(pair => {
+            const ci = pair.indexOf(':');
+            if (ci > 0) item[pair.substring(0, ci).trim()] = pair.substring(ci + 1).trim();
+        });
+        return item;
+    });
+}
+
+function parseItems(infoStr, imageStr) {
+    if (!infoStr) return [];
+    const imgs = imageStr ? imageStr.split(/\s*,\s*/).filter(Boolean) : [];
+    return parsePipeList(infoStr).map((item, i) => {
+        if (imgs[i]) item.image_url = imgs[i];
+        return item;
+    });
+}
+
+// ══════════════════════════════════════════════════
+//  POPULATE
+// ══════════════════════════════════════════════════
+async function populate() {
+
+    // Title
+    if (P.store_title) document.title = P.store_title;
+
+    // Date
+    let displayDate;
+    if (!P.quote_date) {
+        const d = new Date();
+        displayDate = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    } else if (P.quote_date.includes('/')) {
+        displayDate = P.quote_date.split(' ')[0];
+    } else {
+        const d = new Date(P.quote_date);
+        displayDate = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+    document.getElementById('docDate').textContent = displayDate;
+
+    // Logo
+    const logoUrl = await fetchDataUrl(P.store_url);
+    const logoBox = document.getElementById('logoBox');
+    const logoSub = document.getElementById('logoSub');
+    if (logoUrl) {
+        const w = parseInt(P.store_logo_width) || 80;
+        logoBox.innerHTML = `<img src="${logoUrl}" style="width:${w}px; display:block;">`;
+        if (P.store_name) logoSub.textContent = P.store_name;
+    } else {
+        const name = P.store_name || '';
+        logoBox.innerHTML = `<div class="logo-name">${name}</div>`;
+        logoSub.style.display = 'none';
+    }
+
+    // Store info
+    if (P.phone)   document.getElementById('storePhone').textContent   = P.phone;
+    else           hide('storePhoneField');
+    if (P.address) document.getElementById('storeAddress').textContent = P.address;
+    else           hide('storeAddressField');
+
+    // Customer info
+    if (!P.customer_info) {
+        hide('custDivider');
+        hide('custCol');
+        document.getElementById('infoRow').style.gridTemplateColumns = '1fr';
+    } else {
+        const c = {};
+        P.customer_info.split('|').forEach(pair => {
+            const ci = pair.indexOf(':');
+            if (ci > 0) c[pair.substring(0, ci).trim()] = pair.substring(ci + 1).trim();
+        });
+        if (c.customer_name)    document.getElementById('custName').textContent    = c.customer_name;
+        else                    hide('custNameField');
+        if (c.customer_address) document.getElementById('custAddress').textContent = c.customer_address;
+        else                    hide('custAddressField');
+        if (c.customer_phone)   document.getElementById('custPhone').textContent   = c.customer_phone;
+        else                    hide('custPhoneField');
+    }
+
+    // Bank info
+    if (P.bank_info) {
+        const parts = P.bank_info.split(' - ');
+        if (parts[0]) document.getElementById('bankName').textContent    = parts[0];
+        else          hide('bankNameField');
+        if (parts[1]) document.getElementById('bankAccount').textContent = parts[1];
+        else          hide('bankAccountField');
+        if (parts[2]) document.getElementById('bankOwner').textContent   = parts[2];
+        else          hide('bankOwnerField');
+    }
+
+    // QR code
+    const qrUrl = await fetchDataUrl(P.qr_code);
+    if (qrUrl) {
+        const qrWrap = document.getElementById('qrWrap');
+        qrWrap.textContent = '';
+        const img = document.createElement('img');
+        img.src = qrUrl;
+        img.style.cssText = 'width:100%; height:100%; object-fit:contain; border-radius:8px;';
+        qrWrap.appendChild(img);
+    }
+
+    // Product items
+    const items = parseItems(P.items_info, P.items_image);
+    if (items.length > 0) {
+        const dataUrls = await Promise.all(items.map(it => fetchDataUrl(it.image_url)));
+        const tbody = document.getElementById('itemsTbody');
+        tbody.innerHTML = '';
+        items.forEach((item, i) => {
+            if (i > 0) {
+                const divRow = document.createElement('tr');
+                divRow.className = 'tr-divider';
+                divRow.innerHTML = '<td colspan="4"><div class="sum-divider"></div></td>';
+                tbody.appendChild(divRow);
+            }
+            const lineTotal = parseInt(item.line_total) || 0;
+            const imgContent = dataUrls[i]
+                ? `<img class="prod-img" src="${dataUrls[i]}" alt="">`
+                : `<div class="prod-ph">📦</div>`;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="td-stt">${i + 1}</td>
+                <td>
+                    <div class="prod-inner">
+                        ${imgContent}
+                        <div class="prod-desc">
+                            <div class="prod-name">${item.name || ''}</div>
+                            <div class="prod-underline"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="td-sl">${item.quantity || 1}</td>
+                <td class="td-tt">${fmt(lineTotal)} đ</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Summary
+    const subTotal   = parseInt(P.sub_total) || 0;
+    const grandTotal = P.grand_total !== '' ? parseInt(P.grand_total) : subTotal;
+    document.getElementById('summarySubTotal').textContent   = fmt(subTotal)   + ' đ';
+    document.getElementById('summaryGrandTotal').textContent = fmt(grandTotal) + ' đ';
+
+    // Discount rows
+    const discounts = parsePipeList(P.discount_info);
+    const discountContainer = document.getElementById('discountRows');
+    discounts.forEach(d => {
+        const pct   = parseInt(d.percent) || 0;
+        const label = pct > 0 ? `${d.name} ${pct}%` : (d.name || 'Chiết khấu');
+        const price = parseInt(d.price) || 0;
+        const row = document.createElement('div');
+        row.className = 'sum-row sum-discount';
+        row.innerHTML = `<span class="sl">${label}</span><span class="sv">− ${fmt(price)} đ</span>`;
+        discountContainer.appendChild(row);
+    });
+
+    // Sub-total info rows
+    const subInfos = parsePipeList(P.sub_total_info);
+    const subContainer = document.getElementById('subTotalRows');
+    subInfos.forEach(s => {
+        const value = parseInt(s.value) || 0;
+        if (!value) return;
+        const row = document.createElement('div');
+        row.className = 'sum-row';
+        row.innerHTML = `<span class="sl">${s.name || ''}</span><span class="sv">${fmt(value)} đ</span>`;
+        subContainer.appendChild(row);
+    });
+
+    // Show divider if there are discount/sub_total rows
+    if (discounts.length > 0 || subInfos.some(s => parseInt(s.value))) {
+        document.getElementById('discountDivider').style.display = '';
+    }
+}
+
+// ══════════════════════════════════════════════════
+//  SHARE
+// ══════════════════════════════════════════════════
+async function captureAndShare() {
+    const btn = document.getElementById('shareBtn');
+    btn.disabled = true;
+    btn.textContent = 'Đang tạo ảnh...';
+    try {
+        const page  = document.getElementById('page');
+        const pageW = page.offsetWidth;
+        const pageH = page.scrollHeight;
+        const canvas = await html2canvas(page, {
+            backgroundColor: '#faf6ef',
+            scale          : parseInt(P.scale) || 4,
+            useCORS        : false,
+            allowTaint     : true,
+            logging        : false,
+            width          : pageW,
+            height         : pageH,
+            windowWidth    : window.innerWidth,
+            windowHeight   : pageH,
+            onclone: (doc) => {
+                doc.body.style.padding    = '0';
+                doc.body.style.margin     = '0';
+                doc.body.style.background = 'none';
+                const p = doc.getElementById('page');
+                p.style.border    = 'none';
+                p.style.boxShadow = 'none';
+            }
+        });
+
+        const blob = await new Promise((res, rej) =>
+            canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), 'image/png', 0.95)
+        );
+        const file = new File([blob], 'bao-gia.png', { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+            await navigator.share({ title: document.title || 'Báo giá', files: [file] });
+        } else {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(file);
+            a.download = file.name;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    } catch (e) {
+        if (e.name !== 'AbortError') console.error('[share]', e);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+        </svg> Chia sẻ báo giá`;
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () =>
+    populate().finally(() =>
+        document.getElementById('loadingOverlay').classList.add('hidden')
+    )
+);
+</script>
+</body>
+</html>
