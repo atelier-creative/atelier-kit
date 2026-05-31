@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="x-version" content="1">
+  <meta name="x-version" content="2">
   <title>Báo Giá</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Allura&display=swap" rel="stylesheet">
@@ -79,7 +79,7 @@
       font-size: 7px;
       letter-spacing: .5px;
       text-transform: uppercase;
-      color: rgba(201,160,48,.45);
+      color: rgba(201,160,48,.7);
       text-align: center;
       white-space: nowrap;
     }
@@ -722,15 +722,13 @@ async function populate() {
     const logoBox = document.getElementById('logoBox');
     const logoSub = document.getElementById('logoSub');
     const name = P.store_name || '';
+    if (name) { logoSub.textContent = name; logoSub.style.display = ''; }
+    else       { logoSub.style.display = 'none'; }
     logoBox.innerHTML = `<div class="logo-name">${name.charAt(0).toUpperCase()}</div>`;
-    logoSub.style.display = 'none';
     const logoUrl = await fetchDataUrl(P.store_url);
     if (logoUrl) {
         const w = parseInt(P.store_logo_width) || 80;
         logoBox.innerHTML = `<img src="${logoUrl}" style="width:${w}px; display:block;">`;
-        if (name) { logoSub.textContent = name; logoSub.style.display = ''; }
-    } else if (name) {
-        logoBox.innerHTML = `<div class="logo-name">${name}</div>`;
     }
 
     // Store info
