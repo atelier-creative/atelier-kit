@@ -77,10 +77,10 @@
     }
 
     .logo-sub {
-      font-size: 7px;
+      font-size: 9px;
       letter-spacing: .5px;
       text-transform: uppercase;
-      color: rgba(201,160,48,.7);
+      color: rgba(201,160,48,.9);
       text-align: center;
       white-space: nowrap;
     }
@@ -89,8 +89,8 @@
 
     .doc-title {
       font-size: 30px;
-      font-weight: 800;
-      letter-spacing: 5px;
+      font-weight: 700;
+      letter-spacing: 1px;
       color: var(--gold);
       text-transform: uppercase;
     }
@@ -723,7 +723,7 @@ async function populate() {
     logoBox.innerHTML = `<div class="logo-name">${name.charAt(0).toUpperCase()}</div>`;
     const logoUrl = await fetchDataUrl(P.store_url);
     if (logoUrl) {
-        const w = parseInt(P.store_logo_width) || 80;
+        const w = parseInt(P.store_logo_width) || 120;
         logoBox.innerHTML = `<img src="${logoUrl}" style="width:${w}px; display:block;">`;
     }
 
