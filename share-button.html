@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="x-version" content="14">
+  <meta name="x-version" content="15">
   <title>Native Share Button</title>
   <style>
     body {
@@ -405,7 +405,7 @@
     const after = fullUrl.substring(qIndex + 3);
 
     // Stop before any known non-image params (they follow the AppSheet image URL)
-    const stopParams = ['&wholesale_price=', '&retail_price=', '&m=', '&v=', '&thumbnail='];
+    const stopParams = ['&wholesale_price=', '&retail_price=', '&m=', '&v=', '&thumbnail=', '&clipboard_fallback='];
     const stops = stopParams.map(p => after.indexOf(p)).filter(i => i !== -1);
     const end = stops.length ? Math.min(...stops) : after.length;
 
@@ -423,7 +423,7 @@
     const idx = fullUrl.indexOf(key);
     if (idx === -1) return '';
     const after = fullUrl.substring(idx + key.length);
-    const stopParams = ['&wholesale_price=', '&retail_price=', '&m=', '&v=', '&q=', '?q='];
+    const stopParams = ['&wholesale_price=', '&retail_price=', '&m=', '&v=', '&q=', '?q=', '&clipboard_fallback='];
     const stops = stopParams.map(p => after.indexOf(p)).filter(i => i !== -1);
     const end = stops.length ? Math.min(...stops) : after.length;
     return after.substring(0, end);
@@ -625,9 +625,29 @@
         return;
       }
 
+      // Clipboard fallback: when ?clipboard_fallback=1, copy text to clipboard
+      // then share images only (workaround for apps like Messenger that drop text)
+      const clipboardFallback = new URLSearchParams(window.location.search).get('clipboard_fallback') === '1';
+      let textCopiedToClipboard = false;
+      if (clipboardFallback && shareData.files && shareData.text) {
+        try {
+          await navigator.clipboard.writeText(shareData.text);
+          textCopiedToClipboard = true;
+        } catch (e) {
+          console.warn('Clipboard write failed:', e);
+        }
+        delete shareData.text;
+        delete shareData.title;
+        shareData.title = '';
+      }
+
       // Trigger native share dialog
       await navigator.share(shareData);
-      showMessage(`Shared ${itemsToShare.join(' + ')} successfully!`, 'success');
+      if (textCopiedToClipboard) {
+        showMessage('Đã chia sẻ ảnh! Văn bản đã sao chép vào bộ nhớ đệm — dán vào tin nhắn của bạn.', 'success');
+      } else {
+        showMessage(`Shared ${itemsToShare.join(' + ')} successfully!`, 'success');
+      }
     } catch (error) {
       // User cancelled or error occurred
       if (error.name === 'AbortError') {
