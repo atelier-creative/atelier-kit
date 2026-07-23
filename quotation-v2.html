@@ -849,7 +849,7 @@ async function fetchDataUrl(url) {
 
 function parsePipeList(str) {
     if (!str) return [];
-    return str.split(/\s*,\s*/).map(s => {
+    return str.split(/\s*,\s*(?=name:)/).map(s => {
         const item = {};
         s.trim().split('|').forEach(pair => {
             const ci = pair.indexOf(':');
