@@ -515,6 +515,10 @@
         <span class="ilabel">Điện thoại</span>
         <span class="ival" id="custPhone"></span>
       </div>
+      <div class="ifield" id="custNoteField">
+        <span class="ilabel">Ghi chú</span>
+        <span class="ival" id="custNote"></span>
+      </div>
     </div>
   </div>
 
@@ -750,6 +754,8 @@ async function populate() {
         else                    hide('custAddressField');
         if (c.customer_phone)   document.getElementById('custPhone').textContent   = c.customer_phone;
         else                    hide('custPhoneField');
+        if (c.customer_note)    document.getElementById('custNote').textContent    = c.customer_note;
+        else                    hide('custNoteField');
     }
 
     // Bank info + QR — prefetch both accounts in parallel
@@ -816,7 +822,6 @@ async function populate() {
                         ${imgContent}
                         <div class="prod-desc">
                             <div class="prod-name">${item.name || ''}</div>
-                            <div class="prod-underline"></div>
                         </div>
                     </div>
                 </td>
