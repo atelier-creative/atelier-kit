@@ -584,10 +584,10 @@ async function exportExcel() {
                     const imgId  = workbook.addImage({ base64, extension: ext });
                     worksheet.addImage(imgId, {
                         tl    : { col: imgColIdx + 0.05, row: excelRow - 1 + 0.05 },
-                        br    : { col: imgColIdx + 0.95, row: excelRow - 0.05 },
+                        ext   : { width: 180, height: 180 },
                         editAs: 'oneCell'
                     });
-                    wsRow.height = 160;
+                    wsRow.height = 145;
                 } else {
                     wsRow.height = 30;
                 }
