@@ -512,6 +512,15 @@ async function loadProducts() {
     }
 }
 
+function getImageDimensions(dataUrl) {
+    return new Promise(res => {
+        const img = new Image();
+        img.onload  = () => res({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = () => res({ width: 180, height: 180 });
+        img.src = dataUrl;
+    });
+}
+
 // ═══════════════════════════════════════════════════════════
 //  EXPORT
 // ═══════════════════════════════════════════════════════════
@@ -579,15 +588,20 @@ async function exportExcel() {
             if (P.image_col) {
                 const dataUrl = row[P.image_col] ? imageCache[row[P.image_col]] : null;
                 if (dataUrl) {
-                    const base64 = dataUrl.split(',')[1];
-                    const ext    = dataUrl.startsWith('data:image/png') ? 'png' : 'jpeg';
-                    const imgId  = workbook.addImage({ base64, extension: ext });
+                    const base64  = dataUrl.split(',')[1];
+                    const imgExt  = dataUrl.startsWith('data:image/png') ? 'png' : 'jpeg';
+                    const imgId   = workbook.addImage({ base64, extension: imgExt });
+                    const dims    = await getImageDimensions(dataUrl);
+                    const maxPx   = 180;
+                    const scale   = Math.min(maxPx / dims.width, maxPx / dims.height, 1);
+                    const imgW    = Math.round(dims.width  * scale);
+                    const imgH    = Math.round(dims.height * scale);
                     worksheet.addImage(imgId, {
                         tl    : { col: imgColIdx + 0.05, row: excelRow - 1 + 0.05 },
-                        ext   : { width: 180, height: 180 },
+                        ext   : { width: imgW, height: imgH },
                         editAs: 'oneCell'
                     });
-                    wsRow.height = 145;
+                    wsRow.height = Math.round(imgH * 0.75) + 8;
                 } else {
                     wsRow.height = 30;
                 }
