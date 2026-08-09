@@ -251,7 +251,7 @@ function parseUrlParams() {
 
     const KNOWN = [
         'google_client_id','appsheet_key','app_id','table_name',
-        'cols','col_labels','image_col','folder_id','file_name','context_host'
+        'cols','col_labels','image_col','folder_id','file_name','context_host','limit'
     ];
     const get = (name) => {
         const re = new RegExp(`[?&]${name}=`);
@@ -474,6 +474,7 @@ async function loadProducts() {
 
     try {
         productRows = await fetchProducts();
+        if (P.limit) productRows = productRows.slice(0, parseInt(P.limit));
 
         // Build header
         const thead = document.getElementById('tableHead');
