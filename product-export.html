@@ -197,7 +197,8 @@ function parseUrlParams() {
 
     const KNOWN = [
         'appsheet_key','app_id','app_name','table_name',
-        'cols','col_labels','image_col','file_name','context_host','limit'
+        'cols','col_labels','image_col','file_name','context_host','limit',
+        'folder_id','google_client_id'  // kept as stop anchors for backwards-compat
     ];
     const get = (name) => {
         const re = new RegExp(`[?&]${name}=`);
