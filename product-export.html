@@ -581,8 +581,9 @@ async function exportExcel() {
                     const ext    = dataUrl.startsWith('data:image/png') ? 'png' : 'jpeg';
                     const imgId  = workbook.addImage({ base64, extension: ext });
                     worksheet.addImage(imgId, {
-                        tl : { col: imgColIdx, row: excelRow - 1 },
-                        ext: { width: 72, height: 72 }
+                        tl    : { col: imgColIdx + 0.05, row: excelRow - 1 + 0.05 },
+                        br    : { col: imgColIdx + 0.95, row: excelRow - 0.05 },
+                        editAs: 'oneCell'
                     });
                     wsRow.height = 56;
                 } else {
