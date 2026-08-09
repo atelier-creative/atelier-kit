@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="x-version" content="2">
+    <meta name="x-version" content="1">
     <title>Xuất Excel sản phẩm</title>
     <script src="https://accounts.google.com/gsi/client" async></script>
     <style>
@@ -549,7 +549,7 @@ async function exportExcel() {
 
         // Define columns
         const sheetCols = [];
-        if (P.image_col) sheetCols.push({ header: 'Ảnh', key: '__img', width: 20 });
+        if (P.image_col) sheetCols.push({ header: 'Ảnh', key: '__img', width: 30 });
         COLS.forEach((col, i) => sheetCols.push({ header: COL_LABELS[i] || col, key: col, width: 22 }));
         worksheet.columns = sheetCols;
 
@@ -587,7 +587,7 @@ async function exportExcel() {
                         br    : { col: imgColIdx + 0.95, row: excelRow - 0.05 },
                         editAs: 'oneCell'
                     });
-                    wsRow.height = 100;
+                    wsRow.height = 160;
                 } else {
                     wsRow.height = 30;
                 }
