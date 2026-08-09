@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-version" content="1">
+    <title>Xuất Excel sản phẩm</title>
+    <script src="https://accounts.google.com/gsi/client" async></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
+
+        /* ── Header ─────────────────────────────── */
+        .header {
+            background: #fff;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.12);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-title    { font-size: 15px; font-weight: 700; }
+        .header-subtitle { font-size: 12px; color: #888; margin-top: 2px; }
+
+        /* ── Auth section ─────────────────────────── */
+        .auth-section {
+            background: #fff;
+            margin: 20px 16px;
+            border-radius: 14px;
+            padding: 32px 20px;
+            text-align: center;
+            box-shadow: 0 1px 6px rgba(0,0,0,.08);
+        }
+        .auth-section.hidden { display: none; }
+        .auth-icon { font-size: 48px; margin-bottom: 12px; }
+        .auth-desc { font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+
+        .google-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 11px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .google-btn:hover { background: #3367d6; }
+
+        /* ── Main section ─────────────────────────── */
+        .main-section { display: none; padding-bottom: 100px; }
+        .main-section.visible { display: block; }
+
+        .toolbar {
+            margin: 16px 16px 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .load-btn {
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .load-btn:hover { background: #3367d6; }
+        .load-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+        .row-count { font-size: 13px; color: #666; }
+
+        /* ── Status message ───────────────────────── */
+        .status-msg {
+            margin: 0 16px 10px;
+            font-size: 13px;
+            color: #888;
+            min-height: 18px;
+        }
+        .status-msg.error { color: #ea4335; }
+
+        /* ── Preview table ────────────────────────── */
+        .table-wrap {
+            margin: 0 16px;
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            font-size: 13px;
+        }
+        thead th {
+            background: #e9ecef;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 700;
+            white-space: nowrap;
+            border-bottom: 2px solid #dee2e6;
+        }
+        tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: #f8f9fa; }
+        .td-img img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 6px;
+            display: block;
+        }
+        .td-img .img-ph {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        /* ── Action bar ─────────────────────────── */
+        .action-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #fff;
+            padding: 10px 14px;
+            box-shadow: 0 -2px 8px rgba(0,0,0,.1);
+            display: none;
+        }
+        .action-bar.visible { display: block; }
+
+        .export-btn {
+            width: 100%;
+            background: #34a853;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background .2s;
+        }
+        .export-btn:hover { background: #2d9146; }
+        .export-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+        /* ── Spinner ────────────────────────────── */
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ───────────────────────────────────────────── -->
+<div class="header">
+    <div>
+        <div class="header-title">Xuất Excel sản phẩm</div>
+        <div class="header-subtitle" id="headerSubtitle">Chưa đăng nhập</div>
+    </div>
+</div>
+
+<!-- ── Auth ─────────────────────────────────────────────── -->
+<div class="auth-section" id="authSection">
+    <div class="auth-icon">📊</div>
+    <div class="auth-desc">Đăng nhập Google để tải dữ liệu sản phẩm và xuất file Excel</div>
+    <button class="google-btn" id="continueBtn" style="display:none" onclick="continueSignIn()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#fff"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#fff"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#fff"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#fff"/></svg>
+        <span id="continueBtnLabel">Tiếp tục</span>
+    </button>
+    <button class="google-btn" id="googleSignInBtn" onclick="signIn()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#fff"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#fff"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#fff"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#fff"/></svg>
+        Đăng nhập với Google
+    </button>
+</div>
+
+<!-- ── Main ─────────────────────────────────────────────── -->
+<div class="main-section" id="mainSection">
+    <div class="toolbar">
+        <button class="load-btn" id="loadBtn" onclick="loadProducts()">
+            🔄 Tải danh sách
+        </button>
+        <span class="row-count" id="rowCount"></span>
+    </div>
+    <div class="status-msg" id="statusMsg"></div>
+    <div class="table-wrap">
+        <table id="previewTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── Action bar ────────────────────────────────────────── -->
+<div class="action-bar" id="actionBar">
+    <button class="export-btn" id="exportBtn" onclick="exportExcel()">
+        📥 Tải xuống Excel
+    </button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  PARAMS
+// ═══════════════════════════════════════════════════════════
+function parseUrlParams() {
+    const url = window.location.href;
+    const qi  = url.indexOf('?');
+    if (qi === -1) return {};
+    const qs = url.substring(qi);
+
+    const KNOWN = [
+        'google_client_id','appsheet_key','app_id','table_name',
+        'cols','col_labels','image_col','folder_id','file_name','context_host'
+    ];
+    const get = (name) => {
+        const re = new RegExp(`[?&]${name}=`);
+        const m  = qs.match(re);
+        if (!m) return '';
+        const after = qs.substring(m.index + m[0].length);
+        const ends  = KNOWN.filter(p => p !== name).map(p => after.indexOf(`&${p}=`)).filter(i => i !== -1);
+        const end   = ends.length ? Math.min(...ends) : after.length;
+        try { return decodeURIComponent(after.substring(0, end)); } catch { return after.substring(0, end); }
+    };
+    return Object.fromEntries(KNOWN.map(p => [p, get(p)]));
+}
+
+const P = parseUrlParams();
+const COLS       = P.cols        ? P.cols.split(',').map(s => s.trim()).filter(Boolean)       : [];
+const COL_LABELS = P.col_labels  ? P.col_labels.split(',').map(s => s.trim())                 : [];
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let accessToken = null;
+let tokenClient = null;
+let fedCmHint   = null;
+let productRows = [];      // raw rows from AppSheet
+let imageCache  = {};      // imagePath → base64 string
+
+const TOKEN_KEY = 'gd_export_token';
+
+// ═══════════════════════════════════════════════════════════
+//  TOKEN
+// ═══════════════════════════════════════════════════════════
+function saveToken(token, expiresIn) {
+    try { localStorage.setItem(TOKEN_KEY, JSON.stringify({ token, expiry: Date.now() + (expiresIn - 120) * 1000 })); } catch (_) {}
+}
+function loadToken() {
+    try {
+        const raw = localStorage.getItem(TOKEN_KEY);
+        if (!raw) return null;
+        const { token, expiry } = JSON.parse(raw);
+        return Date.now() < expiry ? token : null;
+    } catch (_) { return null; }
+}
+function clearToken() {
+    try { localStorage.removeItem(TOKEN_KEY); } catch (_) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+    const saved = loadToken();
+    if (saved) {
+        accessToken = saved;
+        onAuthed();
+    }
+
+    const waitGsi = setInterval(() => {
+        if (typeof google === 'undefined' || !google.accounts) return;
+        clearInterval(waitGsi);
+
+        if (!P.google_client_id) {
+            if (!saved) document.getElementById('authSection').innerHTML =
+                '<div class="auth-icon">⚠️</div><div class="auth-desc">Thiếu tham số <b>google_client_id</b> trong URL.</div>';
+            return;
+        }
+
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: P.google_client_id,
+            scope    : 'https://www.googleapis.com/auth/drive',
+            callback : onTokenReceived
+        });
+
+        if (!saved && P.context_host === 'Device') initFedCm();
+    }, 100);
+});
+
+function onAuthed() {
+    document.getElementById('authSection').classList.add('hidden');
+    document.getElementById('mainSection').classList.add('visible');
+    document.getElementById('headerSubtitle').textContent = P.table_name || 'Sản phẩm';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GOOGLE AUTH  (same pattern as image-uploader)
+// ═══════════════════════════════════════════════════════════
+function initFedCm() {
+    google.accounts.id.initialize({ client_id: P.google_client_id, callback: onFedCmCredential, use_fedcm_for_prompt: true });
+    google.accounts.id.prompt();
+}
+
+function onFedCmCredential(resp) {
+    try {
+        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
+        fedCmHint = payload.email;
+        document.getElementById('continueBtnLabel').textContent = `Tiếp tục với ${fedCmHint}`;
+        document.getElementById('continueBtn').style.display    = 'inline-flex';
+        document.getElementById('googleSignInBtn').style.display = 'none';
+    } catch (_) {}
+}
+
+function continueSignIn() {
+    if (!tokenClient) return;
+    tokenClient.requestAccessToken({ hint: fedCmHint });
+}
+
+function signIn() {
+    if (!tokenClient) return;
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
+}
+
+function onTokenReceived(resp) {
+    if (resp.error) { if (resp.error !== 'access_denied') alert('Đăng nhập thất bại: ' + resp.error); return; }
+    accessToken = resp.access_token;
+    saveToken(resp.access_token, resp.expires_in || 3600);
+    onAuthed();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DRIVE HELPERS
+// ═══════════════════════════════════════════════════════════
+async function driveGet(path) {
+    const r = await fetch(`https://www.googleapis.com${path}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    if (r.status === 401) { clearToken(); accessToken = null; }
+    if (!r.ok) throw new Error(`Drive ${r.status}`);
+    return r.json();
+}
+
+async function driveDownloadBase64(fileId) {
+    const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    if (!r.ok) return null;
+    const blob = await r.blob();
+    return new Promise(res => {
+        const rd = new FileReader();
+        rd.onloadend = () => res(rd.result); // full data URL
+        rd.readAsDataURL(blob);
+    });
+}
+
+// Resolve imagePath (e.g. "TableName_Images/file.jpg") to a Drive file ID.
+// Traverses folder_id → subfolders → file.
+const folderCache = {};
+async function resolveFolderId(parentId, name) {
+    const key = `${parentId}/${name}`;
+    if (folderCache[key]) return folderCache[key];
+    const q = encodeURIComponent(`'${parentId}' in parents and name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+    const res = await driveGet(`/drive/v3/files?q=${q}&fields=files(id)&pageSize=1`);
+    const id = res.files && res.files.length ? res.files[0].id : null;
+    if (id) folderCache[key] = id;
+    return id;
+}
+
+async function findFileId(imagePath) {
+    if (!imagePath || !P.folder_id) return null;
+    const parts = imagePath.split('/').filter(Boolean);
+    let parentId = P.folder_id;
+    for (let i = 0; i < parts.length - 1; i++) {
+        parentId = await resolveFolderId(parentId, parts[i]);
+        if (!parentId) return null;
+    }
+    const filename = parts[parts.length - 1];
+    const q = encodeURIComponent(`'${parentId}' in parents and name='${filename}' and trashed=false`);
+    const res = await driveGet(`/drive/v3/files?q=${q}&fields=files(id)&pageSize=1`);
+    return res.files && res.files.length ? res.files[0].id : null;
+}
+
+async function fetchImageDataUrl(imagePath) {
+    if (imageCache[imagePath] !== undefined) return imageCache[imagePath];
+    try {
+        let dataUrl = null;
+        if (imagePath.startsWith('http')) {
+            // Full AppSheet URL — fetch directly
+            const r = await fetch(imagePath, { mode: 'cors', credentials: 'omit' });
+            if (r.ok) {
+                const blob = await r.blob();
+                dataUrl = await new Promise(res => {
+                    const rd = new FileReader();
+                    rd.onloadend = () => res(rd.result);
+                    rd.readAsDataURL(blob);
+                });
+            }
+        } else {
+            // Relative Drive path — traverse folder hierarchy
+            const fileId = await findFileId(imagePath);
+            dataUrl = fileId ? await driveDownloadBase64(fileId) : null;
+        }
+        imageCache[imagePath] = dataUrl;
+        return dataUrl;
+    } catch (_) {
+        imageCache[imagePath] = null;
+        return null;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  APPSHEET API
+// ═══════════════════════════════════════════════════════════
+async function fetchProducts() {
+    const r = await fetch(`https://api.appsheet.com/api/v2/apps/${P.app_id}/tables/${encodeURIComponent(P.table_name)}/Action`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', 'ApplicationAccessKey': P.appsheet_key },
+        body   : JSON.stringify({ Action: 'Find', Properties: {}, Rows: [] })
+    });
+    if (!r.ok) throw new Error(`AppSheet API ${r.status}`);
+    const data = await r.json();
+    return data.Rows || [];
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LOAD + PREVIEW
+// ═══════════════════════════════════════════════════════════
+async function loadProducts() {
+    const btn = document.getElementById('loadBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Đang tải...';
+    setStatus('');
+
+    try {
+        productRows = await fetchProducts();
+
+        // Build header
+        const thead = document.getElementById('tableHead');
+        thead.innerHTML = '';
+        const tr = document.createElement('tr');
+        if (P.image_col) { const th = document.createElement('th'); th.textContent = 'Ảnh'; tr.appendChild(th); }
+        COLS.forEach((col, i) => {
+            const th = document.createElement('th');
+            th.textContent = COL_LABELS[i] || col;
+            tr.appendChild(th);
+        });
+        thead.appendChild(tr);
+
+        // Build body (preview — no image fetch yet, use src directly for preview)
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        productRows.forEach(row => {
+            const tr = document.createElement('tr');
+            if (P.image_col) {
+                const td = document.createElement('td');
+                td.className = 'td-img';
+                const imgPath = row[P.image_col];
+                if (imgPath) {
+                    // Preview: show placeholder; images loaded on export
+                    const ph = document.createElement('div');
+                    ph.className = 'img-ph';
+                    ph.textContent = '🖼️';
+                    td.appendChild(ph);
+                } else {
+                    const ph = document.createElement('div');
+                    ph.className = 'img-ph';
+                    ph.textContent = '—';
+                    td.appendChild(ph);
+                }
+                tr.appendChild(td);
+            }
+            COLS.forEach(col => {
+                const td = document.createElement('td');
+                td.textContent = row[col] ?? '';
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('rowCount').textContent = `${productRows.length} sản phẩm`;
+        if (productRows.length > 0) document.getElementById('actionBar').classList.add('visible');
+        setStatus('');
+    } catch (e) {
+        setStatus('Lỗi tải dữ liệu: ' + e.message, true);
+        console.error(e);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🔄 Tải danh sách';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════════════
+async function exportExcel() {
+    if (!productRows.length) return;
+
+    const btn = document.getElementById('exportBtn');
+    btn.disabled = true;
+
+    try {
+        // Lazy-load ExcelJS
+        if (typeof ExcelJS === 'undefined') {
+            setStatus('Đang tải thư viện Excel...');
+            await loadScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js');
+        }
+
+        // Fetch all images from Drive
+        if (P.image_col) {
+            const paths = [...new Set(productRows.map(r => r[P.image_col]).filter(Boolean))];
+            let done = 0;
+            setStatus(`Đang tải ${paths.length} ảnh... (0/${paths.length})`);
+            btn.innerHTML = '<span class="spinner"></span> Đang tải ảnh...';
+            await Promise.all(paths.map(async p => {
+                await fetchImageDataUrl(p);
+                done++;
+                setStatus(`Đang tải ảnh... (${done}/${paths.length})`);
+            }));
+        }
+
+        setStatus('Đang tạo file Excel...');
+        btn.innerHTML = '<span class="spinner"></span> Đang tạo file...';
+
+        const workbook  = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet(P.table_name || 'Sản phẩm');
+
+        // Define columns
+        const sheetCols = [];
+        if (P.image_col) sheetCols.push({ header: 'Ảnh', key: '__img', width: 14 });
+        COLS.forEach((col, i) => sheetCols.push({ header: COL_LABELS[i] || col, key: col, width: 22 }));
+        worksheet.columns = sheetCols;
+
+        // Style header row
+        const headerRow = worksheet.getRow(1);
+        headerRow.font   = { bold: true, size: 11 };
+        headerRow.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE9ECEF' } };
+        headerRow.height = 22;
+        headerRow.alignment = { vertical: 'middle' };
+
+        // Image column index (1-based, ExcelJS uses 0-based for addImage)
+        const imgColIdx = P.image_col ? 0 : -1; // 0-based col index in Excel
+
+        // Add rows
+        for (let i = 0; i < productRows.length; i++) {
+            const row     = productRows[i];
+            const excelRow = i + 2; // 1-indexed; row 1 is header
+
+            const rowData = {};
+            if (P.image_col) rowData.__img = '';
+            COLS.forEach(col => { rowData[col] = row[col] ?? ''; });
+
+            const wsRow = worksheet.addRow(rowData);
+            wsRow.alignment = { vertical: 'middle', wrapText: true };
+
+            if (P.image_col) {
+                const imagePath = row[P.image_col];
+                const dataUrl   = imagePath ? imageCache[imagePath] : null;
+
+                if (dataUrl) {
+                    const base64 = dataUrl.split(',')[1];
+                    const ext    = dataUrl.startsWith('data:image/png') ? 'png' : 'jpeg';
+                    const imgId  = workbook.addImage({ base64, extension: ext });
+                    worksheet.addImage(imgId, {
+                        tl  : { col: imgColIdx, row: excelRow - 1 }, // 0-indexed
+                        ext : { width: 72, height: 72 }
+                    });
+                    wsRow.height = 56;
+                } else {
+                    wsRow.height = 30;
+                }
+            }
+        }
+
+        // Download
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob   = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url    = URL.createObjectURL(blob);
+        const a      = document.createElement('a');
+        a.href       = url;
+        a.download   = P.file_name || 'san-pham.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        setStatus(`Đã xuất ${productRows.length} sản phẩm.`);
+    } catch (e) {
+        setStatus('Lỗi xuất file: ' + e.message, true);
+        console.error(e);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📥 Tải xuống Excel';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+function setStatus(msg, isError = false) {
+    const el = document.getElementById('statusMsg');
+    el.textContent  = msg;
+    el.className    = 'status-msg' + (isError ? ' error' : '');
+}
+
+function loadScript(src) {
+    return new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload  = res;
+        s.onerror = () => rej(new Error('Failed to load ' + src));
+        document.head.appendChild(s);
+    });
+}
+</script>
+</body>
+</html>
