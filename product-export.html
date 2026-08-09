@@ -549,7 +549,7 @@ async function exportExcel() {
 
         // Define columns
         const sheetCols = [];
-        if (P.image_col) sheetCols.push({ header: 'Ảnh', key: '__img', width: 14 });
+        if (P.image_col) sheetCols.push({ header: 'Ảnh', key: '__img', width: 20 });
         COLS.forEach((col, i) => sheetCols.push({ header: COL_LABELS[i] || col, key: col, width: 22 }));
         worksheet.columns = sheetCols;
 
@@ -572,7 +572,9 @@ async function exportExcel() {
             COLS.forEach(col => { rowData[col] = row[col] ?? ''; });
 
             const wsRow = worksheet.addRow(rowData);
-            wsRow.alignment = { vertical: 'middle', wrapText: true };
+            wsRow.eachCell((cell) => {
+                cell.alignment = { vertical: 'top', wrapText: true };
+            });
 
             if (P.image_col) {
                 const dataUrl = row[P.image_col] ? imageCache[row[P.image_col]] : null;
@@ -585,7 +587,7 @@ async function exportExcel() {
                         br    : { col: imgColIdx + 0.95, row: excelRow - 0.05 },
                         editAs: 'oneCell'
                     });
-                    wsRow.height = 56;
+                    wsRow.height = 100;
                 } else {
                     wsRow.height = 30;
                 }
