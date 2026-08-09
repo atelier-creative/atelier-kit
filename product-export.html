@@ -227,21 +227,20 @@ window.addEventListener('load', () => {
 });
 
 // ═══════════════════════════════════════════════════════════
-//  IMAGE FETCH — via AppSheet template URL
+//  IMAGE FETCH — via AppSheet REST API files endpoint
 // ═══════════════════════════════════════════════════════════
-function appsheetImageUrl(imagePath) {
-    if (imagePath.startsWith('http')) return imagePath;
-    return `https://www.appsheet.com/template/gettablefileurl`
-        + `?appName=${encodeURIComponent(P.app_name)}`
-        + `&appId=${P.app_id}`
-        + `&tableName=${encodeURIComponent(P.table_name)}`
-        + `&fileName=${encodeURIComponent(imagePath)}`;
-}
-
 async function fetchImageDataUrl(imagePath) {
     if (imageCache[imagePath] !== undefined) return imageCache[imagePath];
     try {
-        const r = await fetch(appsheetImageUrl(imagePath), { mode: 'cors', credentials: 'omit' });
+        let r;
+        if (imagePath.startsWith('http')) {
+            r = await fetch(imagePath, { mode: 'cors', credentials: 'omit' });
+        } else {
+            r = await fetch(
+                `https://api.appsheet.com/api/v2/apps/${P.app_id}/files?fileName=${encodeURIComponent(imagePath)}`,
+                { headers: { 'ApplicationAccessKey': P.appsheet_key } }
+            );
+        }
         if (!r.ok) { imageCache[imagePath] = null; return null; }
         const blob = await r.blob();
         const dataUrl = await new Promise(res => {
